@@ -459,6 +459,7 @@ class Dataset(torch.utils.data.Dataset):
         with open(filepath, "r", encoding=encoding) as f:
             head = f.readline()[:-1]
         for field_type in head.split(field_separator):
+            print('Field Type: ', field_type)
             field, ftype = field_type.split(":")
             try:
                 ftype = FeatureType(ftype)
@@ -819,6 +820,7 @@ class Dataset(torch.utils.data.Dataset):
         """Filter NaN user_id and item_id"""
         for field, name in zip([self.uid_field, self.iid_field], ["user", "item"]):
             feat = getattr(self, name + "_feat")
+            print('Feat: ', feat)
             if feat is not None:
                 dropped_feat = feat.index[feat[field].isnull()]
                 if len(dropped_feat):
@@ -827,6 +829,8 @@ class Dataset(torch.utils.data.Dataset):
                     )
                     feat.drop(feat.index[dropped_feat], inplace=True)
             if field is not None:
+                print('Field: ', field)
+                print('PD: ', type(self.inter_feat), self.inter_feat.columns, self.inter_feat.head())
                 dropped_inter = self.inter_feat.index[self.inter_feat[field].isnull()]
                 if len(dropped_inter):
                     self.logger.warning(
