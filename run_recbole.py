@@ -16,7 +16,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", "-m", type=str, default="BPR", help="name of models")
     parser.add_argument(
-        "--dataset", "-d", type=str, default="lfm", help="name of datasets"
+        "--dataset", "-d", type=str, default="lfm-100k", help="name of datasets"
     )
     parser.add_argument("--config_files", type=str, default=None, help="config files")
     parser.add_argument(
@@ -44,9 +44,17 @@ if __name__ == "__main__":
         args.config_files.strip().split(" ") if args.config_files else None
     )
 
+    config_dict = {
+        'neg_sampling': None,
+        'epochs': 25,
+        #'log_wanb': True,
+        'wandb_project': 'initial_model_testing',
+        'use_gpu':False,
+    }
+
     if args.nproc == 1 and args.world_size <= 0:
         run_recbole(
-            model=args.model, dataset=args.dataset, config_file_list=config_file_list
+            model=args.model, dataset=args.dataset, config_file_list=config_file_list, config_dict=config_dict
         )
     else:
         if args.world_size == -1:

@@ -69,6 +69,8 @@ def run_recbole(
     dataset = create_dataset(config)
     logger.info(dataset)
 
+    print('Dataset:\n', dataset)
+
     # dataset splitting
     train_data, valid_data, test_data = data_preparation(config, dataset)
 
