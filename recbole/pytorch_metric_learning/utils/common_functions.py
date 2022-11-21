@@ -540,4 +540,10 @@ def append_map(it, suf):
 
 
 def use_cuda_if_available():
-    return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    if torch.backends.mps.is_available() and torch.backends.mps.is_built():
+        return torch.device("mps")
+    elif torch.cuda.is_available():
+        return torch.device("cuda")
+    else:
+        return torch.device("cpu")
