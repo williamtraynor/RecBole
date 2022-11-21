@@ -129,7 +129,8 @@ class HookContainer:
 
     def load_latest_saved_models(self, trainer, model_folder, device=None, best=False):
         if device is None:
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+            #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         resume_epoch, model_suffix = c_f.latest_version(
             model_folder, "trunk_*.pth", best=best
         )
