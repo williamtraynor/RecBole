@@ -266,6 +266,7 @@ class Trainer(AbstractTrainer):
             scaler.update()
             if self.gpu_available and show_progress:
                 if self.device == "cuda":   
+
                     iter_data.set_postfix_str(
                         set_color("GPU RAM: " + get_gpu_usage(self.device), "yellow")
                     )
@@ -616,9 +617,10 @@ class Trainer(AbstractTrainer):
             num_sample += len(batched_data)
             interaction, scores, positive_u, positive_i = eval_func(batched_data)
             if self.gpu_available and show_progress:
-                iter_data.set_postfix_str(
-                    set_color("GPU RAM: " + get_gpu_usage(self.device), "yellow")
-                )
+                if self.device == "cuda":
+                    iter_data.set_postfix_str(
+                        set_color("GPU RAM: " + get_gpu_usage(self.device), "yellow")
+                    )
             self.eval_collector.eval_batch_collect(
                 scores, interaction, positive_u, positive_i
             )
