@@ -24,6 +24,8 @@ from torch import nn
 from recbole.model.abstract_recommender import SequentialRecommender
 from recbole.model.layers import TransformerEncoder
 
+from recbole.pytorch_metric_learning.losses.supcon_loss import SupConLoss
+
 
 class BERT4Rec(SequentialRecommender):
     def __init__(self, config, dataset):
@@ -78,9 +80,9 @@ class BERT4Rec(SequentialRecommender):
 
         # we only need compute the loss at the masked position
         try:
-            assert self.loss_type in ["BPR", "CE"]
+            assert self.loss_type in ["BPR", "CE", 'SupCon']
         except AssertionError:
-            raise AssertionError("Make sure 'loss_type' in ['BPR', 'CE']!")
+            raise AssertionError("Make sure 'loss_type' in ['BPR', 'CE', 'SupCon]!")
 
         # parameters initialization
         self.apply(self._init_weights)
@@ -156,6 +158,15 @@ class BERT4Rec(SequentialRecommender):
         neg_items = interaction[self.NEG_ITEMS]
         masked_index = interaction[self.MASK_INDEX]
 
+        """self.logger.info(f'''
+        INTERACTION TYPE: {type(interaction)}
+        MASKED ITEM SEQ: {masked_item_seq}
+        POS ITEMS: {pos_items}
+        NEG ITEMS: {neg_items}
+        MASKED INDEX: {masked_index}
+        SKIPPED: {interaction['skipped'].shape}
+        ''')"""
+
         seq_output = self.forward(masked_item_seq)
         pred_index_map = self.multi_hot_embed(
             masked_index, masked_item_seq.size(-1)
@@ -169,6 +180,7 @@ class BERT4Rec(SequentialRecommender):
         seq_output = torch.bmm(pred_index_map, seq_output)  # [B mask_len H]
 
         if self.loss_type == "BPR":
+
             pos_items_emb = self.item_embedding(pos_items)  # [B mask_len H]
             neg_items_emb = self.item_embedding(neg_items)  # [B mask_len H]
             pos_score = torch.sum(seq_output * pos_items_emb, dim=-1)  # [B mask_len]
@@ -192,8 +204,16 @@ class BERT4Rec(SequentialRecommender):
                 * targets
             ) / torch.sum(targets)
             return loss
+
+        elif self.loss_type == "SupCon":
+
+            pos_items_emb = self.item_embedding(pos_items)  # [B mask_len H]
+            neg_items_emb = self.item_embedding(neg_items) 
+
+            return torch.mean(loss['loss']['losses'])
+
         else:
-            raise NotImplementedError("Make sure 'loss_type' in ['BPR', 'CE']!")
+            raise NotImplementedError("Make sure 'loss_type' in ['BPR', 'CE', 'SupCon']!")
 
     def predict(self, interaction):
         item_seq = interaction[self.ITEM_SEQ]

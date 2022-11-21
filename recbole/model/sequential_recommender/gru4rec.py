@@ -23,6 +23,7 @@ from torch.nn.init import xavier_uniform_, xavier_normal_
 
 from recbole.model.abstract_recommender import SequentialRecommender
 from recbole.model.loss import BPRLoss
+from recbole.pytorch_metric_learning.losses.supcon_loss import SupConLoss
 
 
 class GRU4Rec(SequentialRecommender):
@@ -62,6 +63,8 @@ class GRU4Rec(SequentialRecommender):
             self.loss_fct = BPRLoss()
         elif self.loss_type == "CE":
             self.loss_fct = nn.CrossEntropyLoss()
+        elif self.loss_type == "SupCon":
+            self.loss_fct = SupConLoss()
         else:
             raise NotImplementedError("Make sure 'loss_type' in ['BPR', 'CE']!")
 
@@ -97,11 +100,23 @@ class GRU4Rec(SequentialRecommender):
             neg_score = torch.sum(seq_output * neg_items_emb, dim=-1)  # [B]
             loss = self.loss_fct(pos_score, neg_score)
             return loss
-        else:  # self.loss_type = 'CE'
+        elif self.loss_type == 'CE':
             test_item_emb = self.item_embedding.weight
             logits = torch.matmul(seq_output, test_item_emb.transpose(0, 1))
             loss = self.loss_fct(logits, pos_items)
             return loss
+        elif self.loss_type == 'SupCon':
+            neg_items = interaction[self.NEG_ITEM_ID]
+            pos_items_emb = self.item_embedding(pos_items)  # [B mask_len H]
+            neg_items_emb = self.item_embedding(neg_items) 
+            loss = SupConLoss()._compute_loss(seq_output, pos_items_emb, neg_items_emb)
+
+            return torch.mean(loss['loss']['losses'])
+        
+        else:
+            raise NotImplementedError("Make sure 'loss_type' in ['BPR', 'CE', 'SupCon']!")
+
+
 
     def predict(self, interaction):
         item_seq = interaction[self.ITEM_SEQ]

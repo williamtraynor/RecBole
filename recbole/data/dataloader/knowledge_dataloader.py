@@ -43,8 +43,9 @@ class KGDataLoader(AbstractDataLoader):
         self.neg_sample_num = 1
 
         self.neg_prefix = config["NEG_PREFIX"]
-        self.hid_field = dataset.head_entity_field
-        self.tid_field = dataset.tail_entity_field
+        self.hid_field = dataset.head_entity_field #USERS
+        # Relationship will be 'user skipped track'
+        self.tid_field = dataset.tail_entity_field #TRACKS
 
         # kg negative cols
         self.neg_tid_field = self.neg_prefix + self.tid_field

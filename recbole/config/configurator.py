@@ -348,7 +348,7 @@ class Config(object):
                         f"when the loss_type is CE."
                     )
                 self.final_config_dict["MODEL_INPUT_TYPE"] = InputType.POINTWISE
-            elif self.final_config_dict["loss_type"] in ["BPR"]:
+            elif self.final_config_dict["loss_type"] in ["BPR", "SupCon"]:
                 self.final_config_dict["MODEL_INPUT_TYPE"] = InputType.PAIRWISE
         else:
             raise ValueError(

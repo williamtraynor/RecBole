@@ -178,6 +178,22 @@ class NegSampleDataLoader(AbstractDataLoader):
             )
 
     def _neg_sampling(self, inter_feat):
+
+        """getLogger().info(f'''
+        Neg Sampling in DataLoader (inter_feat): {inter_feat} {type(inter_feat)}
+
+        User ID: {inter_feat.user_id}
+        Track ID: {inter_feat.track_id}
+        Skipped: {inter_feat.skipped}
+        Item Length: {inter_feat.item_length}
+        Track ID List: {inter_feat.track_id_list}
+        Mask Track ID List: {inter_feat.Mask_track_id_list}
+        Positive Track ID: {inter_feat.Pos_track_id}
+        Negative Track ID: {inter_feat.Neg_track_id}
+        MASK_INDEX: {inter_feat.MASK_INDEX}
+
+        ''')"""
+
         if self.neg_sample_args.get("dynamic", False):
             candidate_num = self.neg_sample_args["candidate_num"]
             user_ids = inter_feat[self.uid_field].numpy()

@@ -38,6 +38,9 @@ class TrainDataLoader(NegSampleDataLoader):
 
     def __init__(self, config, dataset, sampler, shuffle=False):
         self.logger = getLogger()
+
+        #getLogger().info('MODEL INPUT TYPE: ', config['MODEL_INPUT_TYPE'])
+
         self._set_neg_sample_args(
             config, dataset, config["MODEL_INPUT_TYPE"], config["train_neg_sample_args"]
         )
@@ -65,6 +68,9 @@ class TrainDataLoader(NegSampleDataLoader):
         super().update_config(config)
 
     def collate_fn(self, index):
+
+        #getLogger().info(f'Collate_FN Called: {type(index)}, {index}')
+
         index = np.array(index)
         data = self._dataset[index]
         transformed_data = self.transform(self._dataset, data)

@@ -168,10 +168,12 @@ def data_preparation(config, dataset):
         )
 
         if model_type != ModelType.KNOWLEDGE:
+
             train_data = get_dataloader(config, "train")(
                 config, train_dataset, train_sampler, shuffle=config["shuffle"]
             )
         else:
+
             kg_sampler = KGSampler(
                 dataset,
                 config["train_neg_sample_args"]["distribution"],

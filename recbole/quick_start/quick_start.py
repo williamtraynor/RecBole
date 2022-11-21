@@ -69,10 +69,22 @@ def run_recbole(
     dataset = create_dataset(config)
     logger.info(dataset)
 
+    logger.info(type(dataset), dataset['skipped'])
+
     print('Dataset:\n', dataset)
 
     # dataset splitting
     train_data, valid_data, test_data = data_preparation(config, dataset)
+
+    """
+    logger.info(f'''
+    Type: {type(train_data)} 
+    ''')
+
+    for item in train_data:
+        logger.info('THE TRAIN DATA ITEM: ', type(item))
+        break
+    """
 
     # model loading and initialization
     init_seed(config["seed"] + config["local_rank"], config["reproducibility"])

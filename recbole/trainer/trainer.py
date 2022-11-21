@@ -213,6 +213,9 @@ class Trainer(AbstractTrainer):
             multiple parts and the model return these multiple parts loss instead of the sum of loss, it will return a
             tuple which includes the sum of loss in each part.
         """
+
+        self.logger.info(set_color("best valid ", "yellow") + f": hello")
+
         self.model.train()
         loss_func = loss_func or self.model.calculate_loss
         total_loss = None
