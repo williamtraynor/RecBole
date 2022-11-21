@@ -239,8 +239,11 @@ def get_gpu_usage(device=None):
         str: it contains the info about reserved memory and total memory of given device.
     """
 
-    reserved = torch.cuda.max_memory_reserved(device) / 1024**3
-    total = torch.cuda.get_device_properties(device).total_memory / 1024**3
+    #reserved = torch.cuda.max_memory_reserved(device) / 1024**3
+    #total = torch.cuda.get_device_properties(device).total_memory / 1024**3
+
+    reserved = torch.backends.mps.max_memory_reserved(device) / 1024**3
+    total = torch.backends.mps.get_device_properties(device).total_memory / 1024**3
 
     return "{:.2f} G/{:.2f} G".format(reserved, total)
 
