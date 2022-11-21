@@ -265,9 +265,10 @@ class Trainer(AbstractTrainer):
             scaler.step(self.optimizer)
             scaler.update()
             if self.gpu_available and show_progress:
-                iter_data.set_postfix_str(
-                    set_color("GPU RAM: " + get_gpu_usage(self.device), "yellow")
-                )
+                if self.device == "cuda":   
+                    iter_data.set_postfix_str(
+                        set_color("GPU RAM: " + get_gpu_usage(self.device), "yellow")
+                    )
         return total_loss
 
     def _valid_epoch(self, valid_data, show_progress=False):
