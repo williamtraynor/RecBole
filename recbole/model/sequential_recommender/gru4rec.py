@@ -45,6 +45,7 @@ class GRU4Rec(SequentialRecommender):
         self.loss_type = config["loss_type"]
         self.num_layers = config["num_layers"]
         self.dropout_prob = config["dropout_prob"]
+        self.LABEL_FIELD = config["LABEL_FIELD"]
 
         # define layers and loss
         self.item_embedding = nn.Embedding(
@@ -65,8 +66,10 @@ class GRU4Rec(SequentialRecommender):
             self.loss_fct = nn.CrossEntropyLoss()
         elif self.loss_type == "SupCon":
             self.loss_fct = SupConLoss()
+        elif self.loss_type == 'BCE':
+            self.loss_fct = nn.BCEWithLogitsLoss()
         else:
-            raise NotImplementedError("Make sure 'loss_type' in ['BPR', 'CE']!")
+            raise NotImplementedError("Make sure 'loss_type' in ['BPR', 'CE', 'SupCon', 'BCE']!")
 
         # parameters initialization
         self.apply(self._init_weights)
@@ -110,8 +113,13 @@ class GRU4Rec(SequentialRecommender):
             pos_items_emb = self.item_embedding(pos_items)  # [B mask_len H]
             neg_items_emb = self.item_embedding(neg_items) 
             loss = SupConLoss()._compute_loss(seq_output, pos_items_emb, neg_items_emb)
-
             return torch.mean(loss['loss']['losses'])
+        elif self.loss_type == 'BCE':
+            test_item_emb = self.item_embedding.weight
+            label = interaction[self.LABEL_FIELD]
+            logits = torch.matmul(seq_output, test_item_emb.transpose(0, 1))
+            loss = self.loss_fct(logits, label)
+            return loss
         
         else:
             raise NotImplementedError("Make sure 'loss_type' in ['BPR', 'CE', 'SupCon']!")

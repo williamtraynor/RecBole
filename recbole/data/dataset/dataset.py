@@ -830,6 +830,7 @@ class Dataset(torch.utils.data.Dataset):
                     feat.drop(feat.index[dropped_feat], inplace=True)
             if field is not None:
                 print('Field: ', field)
+                print('InterFeat Columns: ', self.inter_feat.columns)
                 print('PD: ', type(self.inter_feat), self.inter_feat.columns, self.inter_feat.head())
                 dropped_inter = self.inter_feat.index[self.inter_feat[field].isnull()]
                 if len(dropped_inter):
