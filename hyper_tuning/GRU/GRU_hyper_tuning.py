@@ -20,6 +20,7 @@ def tune(algo):
         max_evals=100,
         params_file=params_file,
         fixed_config_file_list=config_file_list,
+        output_file=output_file,
     )
     hp.run()
 
