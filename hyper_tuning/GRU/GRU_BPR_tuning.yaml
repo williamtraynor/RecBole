@@ -1,9 +1,17 @@
 dataset: lfm-100k
 model: GRU4Rec
-epochs: 100
+epochs: 300
 loss_type: BPR
 state: ERROR
-data_path: /Users/williamtraynor/Documents/seqreq_code/MSciProject/RecBoleFrk/dataset
+#data_path: /Users/williamtraynor/Documents/seqreq_code/MSciProject/RecBoleFrk/dataset
+data_path: /Users/mengzaiqiao/Documents/William/WilliamRecBole/dataset
+
+use_gpu: True
+device: mfs
+
+seed: 2020
+reproducibility: True
+
 
 # Atomic File Format
 field_separator: "\t"
