@@ -69,7 +69,7 @@ def r_precision(
     matches_per_row = torch.sum(same_label * relevance_mask, dim=1)
     max_possible_matches_per_row = torch.sum(relevance_mask, dim=1)
     accuracy_per_sample = (
-        matches_per_row.type(torch.float64) / max_possible_matches_per_row
+        matches_per_row.type(torch.float32) / max_possible_matches_per_row
     )
     return maybe_get_avg_of_avgs(
         accuracy_per_sample, gt_labels, avg_of_avgs, return_per_class
@@ -103,7 +103,7 @@ def mean_average_precision(
     equality = is_same_label * knn_mask
     cumulative_correct = torch.cumsum(equality, dim=1)
     k_idx = torch.arange(1, num_k + 1, device=device).repeat(num_samples, 1)
-    precision_at_ks = (cumulative_correct * equality).type(torch.float64) / k_idx
+    precision_at_ks = (cumulative_correct * equality).type(torch.float32) / k_idx
     summed_precision_per_row = torch.sum(precision_at_ks * knn_mask, dim=1)
     accuracy_per_sample = summed_precision_per_row / count_per_query
     return maybe_get_avg_of_avgs(
@@ -141,7 +141,7 @@ def precision_at_k(
 ):
     curr_knn_labels = knn_labels[:, :k]
     same_label = label_comparison_fn(gt_labels, curr_knn_labels)
-    accuracy_per_sample = torch.sum(same_label, dim=1).type(torch.float64) / k
+    accuracy_per_sample = torch.sum(same_label, dim=1).type(torch.float32) / k
     return maybe_get_avg_of_avgs(
         accuracy_per_sample, gt_labels, avg_of_avgs, return_per_class
     )

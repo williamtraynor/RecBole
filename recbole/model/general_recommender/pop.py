@@ -52,6 +52,6 @@ class Pop(GeneralRecommender):
 
     def full_sort_predict(self, interaction):
         batch_user_num = interaction[self.USER_ID].shape[0]
-        result = self.item_cnt.to(torch.float64) / self.max_cnt.to(torch.float64)
+        result = self.item_cnt.to(torch.float32) / self.max_cnt.to(torch.float32)
         result = torch.repeat_interleave(result.unsqueeze(0), batch_user_num, dim=0)
         return result.view(-1)

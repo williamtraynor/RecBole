@@ -28,14 +28,14 @@ def _convert_to_tensor(data):
         torch.Tensor: Converted tensor from `data`.
     """
     elem = data[0]
-    if isinstance(elem, (float, int, np.float, np.int64)):
+    if isinstance(elem, (float, int, np.float, np.int32)):
         new_data = torch.as_tensor(data)
     elif isinstance(elem, (list, tuple, pd.Series, np.ndarray, torch.Tensor)):
         seq_data = [torch.as_tensor(d) for d in data]
         new_data = rnn_utils.pad_sequence(seq_data, batch_first=True)
     else:
         raise ValueError(f"[{type(elem)}] is not supported!")
-    if new_data.dtype == torch.float64:
+    if new_data.dtype == torch.float32:
         new_data = new_data.float()
     return new_data
 

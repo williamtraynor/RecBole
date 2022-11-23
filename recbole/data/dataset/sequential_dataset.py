@@ -116,7 +116,7 @@ class SequentialDataset(Dataset):
         uid_list = np.array(uid_list)
         item_list_index = np.array(item_list_index)
         target_index = np.array(target_index)
-        item_list_length = np.array(item_list_length, dtype=np.int64)
+        item_list_length = np.array(item_list_length, dtype=np.int32)
 
         new_length = len(item_list_index)
         new_data = self.inter_feat[target_index]

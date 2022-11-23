@@ -104,7 +104,7 @@ class DIENDataset(SequentialDataset):
         uid_list = np.array(uid_list)
         item_list_index = np.array(item_list_index)
         target_index = np.array(target_index)
-        item_list_length = np.array(item_list_length, dtype=np.int64)
+        item_list_length = np.array(item_list_length, dtype=np.int32)
 
         new_length = len(item_list_index)
         new_data = self.inter_feat[target_index]
@@ -128,9 +128,9 @@ class DIENDataset(SequentialDataset):
                     shape += (2,)
                 list_ftype = self.field2type[list_field]
                 dtype = (
-                    torch.int64
+                    torch.int32
                     if list_ftype in [FeatureType.TOKEN, FeatureType.TOKEN_SEQ]
-                    else torch.float64
+                    else torch.float32
                 )
                 new_dict[list_field] = torch.zeros(shape, dtype=dtype)
 

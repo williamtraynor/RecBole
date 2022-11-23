@@ -304,8 +304,8 @@ def get_flops(model, dataset, device, logger, transform, verbose=False):
         custom_ops = {}
 
     def add_hooks(m: nn.Module):
-        m.register_buffer("total_ops", torch.zeros(1, dtype=torch.float64))
-        m.register_buffer("total_params", torch.zeros(1, dtype=torch.float64))
+        m.register_buffer("total_ops", torch.zeros(1, dtype=torch.float32))
+        m.register_buffer("total_params", torch.zeros(1, dtype=torch.float32))
 
         m_type = type(m)
 
