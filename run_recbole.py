@@ -45,11 +45,9 @@ if __name__ == "__main__":
     )
 
     config_dict = {
-        'neg_sampling': None,
-        'epochs': 25,
         #'log_wanb': True,
         'wandb_project': 'initial_model_testing',
-        'use_gpu':False,
+        'use_gpu':True,
     }
 
     if args.nproc == 1 and args.world_size <= 0:
