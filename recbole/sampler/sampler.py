@@ -171,7 +171,7 @@ class AbstractSampler(object):
                 mask = np.isin(value, used)
                 check_list = check_list[mask]
         else:
-            value_ids = np.zeros(total_num, dtype=np.int32)
+            value_ids = np.zeros(total_num, dtype=np.int64)
             check_list = np.arange(total_num)
             key_ids = np.tile(key_ids, num)
             while len(check_list) > 0:
@@ -480,7 +480,7 @@ class SeqSampler(AbstractSampler):
 
         """
         total_num = len(pos_sequence)
-        value_ids = np.zeros(total_num, dtype=np.int32)
+        value_ids = np.zeros(total_num, dtype=np.int64)
         check_list = np.arange(total_num)
         while len(check_list) > 0:
             value_ids[check_list] = self.sampling(len(check_list))

@@ -173,8 +173,8 @@ class KGNNLS(KnowledgeRecommender):
         # each line of adj_entity stores the sampled neighbor entities for a given entity
         # each line of adj_relation stores the corresponding sampled neighbor relations
         entity_num = kg_graph.shape[0]
-        adj_entity = np.zeros([entity_num, self.neighbor_sample_size], dtype=np.int32)
-        adj_relation = np.zeros([entity_num, self.neighbor_sample_size], dtype=np.int32)
+        adj_entity = np.zeros([entity_num, self.neighbor_sample_size], dtype=np.int64)
+        adj_relation = np.zeros([entity_num, self.neighbor_sample_size], dtype=np.int64)
         for entity in range(entity_num):
             if entity not in kg_dict.keys():
                 adj_entity[entity] = np.array([entity] * self.neighbor_sample_size)

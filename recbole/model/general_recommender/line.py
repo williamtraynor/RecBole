@@ -83,7 +83,7 @@ class LINE(GeneralRecommender):
         key_ids = np.array(key_ids.cpu())
         key_num = len(key_ids)
         total_num = key_num
-        value_ids = np.zeros(total_num, dtype=np.int32)
+        value_ids = np.zeros(total_num, dtype=np.int64)
         check_list = np.arange(total_num)
         key_ids = np.tile(key_ids, 1)
         while len(check_list) > 0:

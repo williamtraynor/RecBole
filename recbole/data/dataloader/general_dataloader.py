@@ -109,7 +109,7 @@ class NegSampleEvalDataLoader(NegSampleDataLoader):
                     start[uid] = i
                 end[uid] = i
             self.uid2index = np.array([None] * user_num)
-            self.uid2items_num = np.zeros(user_num, dtype=np.int32)
+            self.uid2items_num = np.zeros(user_num, dtype=np.int64)
             for uid in self.uid_list:
                 self.uid2index[uid] = slice(start[uid], end[uid] + 1)
                 self.uid2items_num[uid] = end[uid] - start[uid] + 1
@@ -158,7 +158,7 @@ class NegSampleEvalDataLoader(NegSampleDataLoader):
             data_list = []
             idx_list = []
             positive_u = []
-            positive_i = torch.tensor([], dtype=torch.int32)
+            positive_i = torch.tensor([], dtype=torch.int64)
 
             for idx, uid in enumerate(uid_list):
                 index = self.uid2index[uid]
@@ -202,7 +202,7 @@ class FullSortEvalDataLoader(AbstractDataLoader):
         if not self.is_sequential:
             user_num = dataset.user_num
             self.uid_list = []
-            self.uid2items_num = np.zeros(user_num, dtype=np.int32)
+            self.uid2items_num = np.zeros(user_num, dtype=np.int64)
             self.uid2positive_item = np.array([None] * user_num)
             self.uid2history_item = np.array([None] * user_num)
 
@@ -223,7 +223,7 @@ class FullSortEvalDataLoader(AbstractDataLoader):
                     positive_item = set()
                 positive_item.add(iid)
             self._set_user_property(last_uid, uid2used_item[last_uid], positive_item)
-            self.uid_list = torch.tensor(self.uid_list, dtype=torch.int32)
+            self.uid_list = torch.tensor(self.uid_list, dtype=torch.int64)
             self.user_df = dataset.join(Interaction({self.uid_field: self.uid_list}))
 
         self.sample_size = len(self.user_df) if not self.is_sequential else len(dataset)
@@ -237,10 +237,10 @@ class FullSortEvalDataLoader(AbstractDataLoader):
             return
         history_item = used_item - positive_item
         self.uid2positive_item[uid] = torch.tensor(
-            list(positive_item), dtype=torch.int32
+            list(positive_item), dtype=torch.int64
         )
         self.uid2items_num[uid] = len(positive_item)
-        self.uid2history_item[uid] = torch.tensor(list(history_item), dtype=torch.int32)
+        self.uid2history_item[uid] = torch.tensor(list(history_item), dtype=torch.int64)
 
     def _init_batch_size_and_step(self):
         batch_size = self.config["eval_batch_size"]
