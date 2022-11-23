@@ -16,10 +16,12 @@ from recbole.utils import (
     init_seed,
 )
 
+
 current_path = os.path.dirname(os.path.realpath(__file__))
-config_file_list = [os.path.join(current_path, "GRU_BPR_tuning.yaml")]
-params_file = os.path.join(current_path, "GRU_hyper_tuning_params.yaml")
-output_file = os.path.join(current_path, "GRU_BPR.txt")
+config_file_list = [os.path.join(current_path, "hyper_tuning/GRU/GRU_CE_tuning.yaml")]
+params_file = os.path.join(current_path, "hyper_tuning/GRU/GRU_hyper_tuning_params.yaml")
+output_file = os.path.join(current_path, "hyper_tuning/GRU/GRU_CE.txt")
+
 
 def objective_function(config_dict=None, config_file_list=None):
 
@@ -28,7 +30,7 @@ def objective_function(config_dict=None, config_file_list=None):
     dataset = create_dataset(config)
     train_data, valid_data, test_data = data_preparation(config, dataset)
     model_name = config['model']
-    model = get_model(model_name)(config, train_data._dataset).to('mps')
+    model = get_model(model_name)(config, train_data._dataset).to(config['device'])
     trainer = get_trainer(config['MODEL_TYPE'], config['model'])(config, model)
     best_valid_score, best_valid_result = trainer.fit(train_data, valid_data, verbose=False)
     test_result = trainer.evaluate(test_data)
