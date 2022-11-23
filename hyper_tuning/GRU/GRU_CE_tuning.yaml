@@ -11,6 +11,7 @@ use_gpu: True
 seed: 2020
 reproducibility: True
 
+train_neg_sample_args:   
 
 # Atomic File Format
 field_separator: "\t"
