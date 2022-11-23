@@ -30,7 +30,7 @@ def objective_function(config_dict=None, config_file_list=None):
     dataset = create_dataset(config)
     train_data, valid_data, test_data = data_preparation(config, dataset)
     model_name = config['model']
-    model = get_model(model_name)(config, train_data._dataset).to(config['device'])
+    model = get_model(model_name)(config, train_data._dataset).to('mps')
     trainer = get_trainer(config['MODEL_TYPE'], config['model'])(config, model)
     best_valid_score, best_valid_result = trainer.fit(train_data, valid_data, verbose=False)
     test_result = trainer.evaluate(test_data)

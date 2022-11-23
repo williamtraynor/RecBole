@@ -7,7 +7,7 @@ state: ERROR
 data_path: /Users/mengzaiqiao/Documents/William/WilliamRecBole/dataset
 
 use_gpu: True
-device: mfs
+device: mps
 
 seed: 2020
 reproducibility: True
