@@ -1,7 +1,7 @@
 dataset: lfm-100k
-model: GRU4Rec
+model: BERT4Rec
 epochs: 250
-loss_type: BPR
+loss_type: CE
 state: ERROR
 #data_path: /Users/williamtraynor/Documents/seqreq_code/MSciProject/RecBoleFrk/dataset
 data_path: /Users/mengzaiqiao/Documents/William/WilliamRecBole/dataset
