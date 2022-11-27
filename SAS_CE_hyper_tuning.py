@@ -19,7 +19,7 @@ from recbole.utils import (
 
 current_path = os.path.dirname(os.path.realpath(__file__))
 config_file_list = [os.path.join(current_path, "hyper_tuning/SAS/SAS_CE_tuning.yaml")]
-params_file = os.path.join(current_path, "hyper_tuning/SAS/SAS_hyper_tuning_params.yaml")
+params_file = os.path.join(current_path, "hyper_tuning/SAS/SAS_hyper_tuning_params_ce_2.yaml")
 output_file = os.path.join(current_path, "hyper_tuning/SAS/SAS_CE.txt")
 
 

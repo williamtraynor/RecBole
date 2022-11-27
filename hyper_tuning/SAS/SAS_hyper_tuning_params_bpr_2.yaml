@@ -1,0 +1,14 @@
+learning_rate choice [0.0005452021907305256] #loguniform -8,0
+embedding_size choice [1024,2048,4096] #[128,512,1024]
+hidden_size choice [512] #[128,512,1024] 
+train_batch_size choice [8192, 16384] #[512,1024,2048,4096]
+dropout choice [0.26934981257246726] #uniform 0.2,0.8
+num_layers choice [5,7,9]
+
+# BEST BPR
+#num_layers:5, dropout:0.26934981257246726, embedding_size:1024, hidden_size:512, learning_rate:0.0005452021907305256, train_batch_size:4096
+#Valid result:
+#recall@10 : 0.169    mrr@10 : 0.0904    ndcg@10 : 0.1096    hit@10 : 0.169    precision@10 : 0.0169
+#Test result:
+#recall@10 : 0.1646    mrr@10 : 0.1032    ndcg@10 : 0.1184    hit@10 : 0.1646    precision@10 : 0.0165
+
