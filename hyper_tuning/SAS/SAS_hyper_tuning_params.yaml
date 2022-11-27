@@ -4,3 +4,19 @@ hidden_size choice [128,512,1024]
 train_batch_size choice [512,1024,2048,4096]
 dropout uniform 0.2,0.8
 #num_layers choice [1,3,5]
+
+##BEST CE
+#num_layers:1, dropout:0.674981628780673, embedding_size:128, hidden_size:128, learning_rate:0.0006771767532557866, train_batch_size:1024
+#Valid result:   
+#recall@10 : 0.1735    mrr@10 : 0.0957    ndcg@10 : 0.1145    hit@10 : 0.1735    precision@10 : 0.0173
+#Test result:
+#recall@10 : 0.1492    mrr@10 : 0.0882    ndcg@10 : 0.1031    hit@10 : 0.1492    precision@10 : 0.0149
+#
+
+# BEST BPR
+#num_layers:5, dropout:0.26934981257246726, embedding_size:1024, hidden_size:512, learning_rate:0.0005452021907305256, train_batch_size:4096
+#Valid result:
+#recall@10 : 0.169    mrr@10 : 0.0904    ndcg@10 : 0.1096    hit@10 : 0.169    precision@10 : 0.0169
+#Test result:
+#recall@10 : 0.1646    mrr@10 : 0.1032    ndcg@10 : 0.1184    hit@10 : 0.1646    precision@10 : 0.0165
+

@@ -18,7 +18,7 @@ from recbole.utils import (
 
 current_path = os.path.dirname(os.path.realpath(__file__))
 config_file_list = [os.path.join(current_path, "hyper_tuning/SAS/SAS_BPR_tuning.yaml")]
-params_file = os.path.join(current_path, "hyper_tuning/SAS/SAS_hyper_tuning_params.yaml")
+params_file = os.path.join(current_path, "hyper_tuning/SAS/SAS_hyper_tuning_params_bpr_2.yaml")
 output_file = os.path.join(current_path, "hyper_tuning/SAS/SAS_BPR.txt")
 
 def objective_function(config_dict=None, config_file_list=None):

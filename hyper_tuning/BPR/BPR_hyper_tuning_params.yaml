@@ -1,4 +1,18 @@
-embedding_size choice [128,512,1024]
-learning_rate choice [0.01,0.005,0.001,0.0005,0.0001]
-n_layers choice [1,2,3,4]
-reg_weight choice [1e-05,1e-04,1e-03,1e-02]
+embedding_size choice [1024,2048,4096] #[128,512,1024,2048,4096]
+learning_rate choice [0.01] #[0.01,0.005,0.001,0.0005,0.0001]
+n_layers choice [1] #[1,2,3,4]
+reg_weight choice [0.001] # [1e-05,1e-04,1e-03,1e-02]
+
+# BEST
+#embedding_size:1024, learning_rate:0.001, n_layers:1, reg_weight:0.001
+#Valid result:
+#recall@10 : 0.2061    mrr@10 : 0.2383    ndcg@10 : 0.202    hit@10 : 0.2686    precision@10 : 0.0446
+#Test result:
+#recall@10 : 0.2062    mrr@10 : 0.2334    ndcg@10 : 0.2008    hit@10 : 0.2634    precision@10 : 0.0428
+
+# BEST
+#embedding_size:1024, learning_rate:0.001, n_layers:4, reg_weight:0.001
+#Valid result:
+#recall@10 : 0.2061    mrr@10 : 0.2383    ndcg@10 : 0.202    hit@10 : 0.2686    precision@10 : 0.0446
+#Test result:
+#recall@10 : 0.2062    mrr@10 : 0.2334    ndcg@10 : 0.2008    hit@10 : 0.2634    precision@10 : 0.0428
