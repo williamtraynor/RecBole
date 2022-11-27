@@ -1,8 +1,8 @@
-learning_rate choice [0.0005452021907305256] #loguniform -8,0
+learning_rate: 0.0005452021907305256 # choice [0.0005452021907305256] #loguniform -8,0
 embedding_size choice [1024,2048,4096] #[128,512,1024]
-hidden_size choice [512] #[128,512,1024] 
+hidden_size: 512 # choice [512] #[128,512,1024] 
 train_batch_size choice [8192, 16384] #[512,1024,2048,4096]
-dropout choice [0.26934981257246726] #uniform 0.2,0.8
+dropout: 0.26934981257246726  # choice [0.26934981257246726] #uniform 0.2,0.8
 num_layers choice [5,7,9]
 
 # BEST BPR

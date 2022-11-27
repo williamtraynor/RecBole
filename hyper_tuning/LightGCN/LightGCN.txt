@@ -1,0 +1,6 @@
+# BEST
+embedding_size:1024, learning_rate:0.005, n_layers:1, reg_weight:0.01
+Valid result:
+recall@10 : 0.2044    mrr@10 : 0.2246    ndcg@10 : 0.1931    hit@10 : 0.2664    precision@10 : 0.043
+Test result:
+recall@10 : 0.2045    mrr@10 : 0.2244    ndcg@10 : 0.1952    hit@10 : 0.2611    precision@10 : 0.0413
