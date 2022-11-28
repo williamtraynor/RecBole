@@ -6,6 +6,10 @@ state: ERROR
 #data_path: /Users/williamtraynor/Documents/seqreq_code/MSciProject/RecBoleFrk/dataset
 data_path: /Users/mengzaiqiao/Documents/William/WilliamRecBole/dataset
 
+learning_rate: 0.0005452021907305256 #loguniform -8,0
+hidden_size: 512 # choice [512] #[128,512,1024] 
+dropout choice: 0.26934981257246726 #uniform 0.2,0.8
+
 use_gpu: True
 
 seed: 2020
