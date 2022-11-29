@@ -45,11 +45,19 @@ if __name__ == "__main__":
     )
 
     config_dict = {
-        #'log_wanb': True,
+        'log_wandb': True,
         'wandb_project': 'initial_model_testing',
         'use_gpu':True,
     }
 
+    
+    if args.model == 'LightGCN':
+        config_dict['learning_rate'] = 0.005
+        config_dict['n_layers'] = 1
+        config_dict['reg_weight'] = 0.01
+        config_dict['embedding_size'] = 2048
+
+        
     if args.nproc == 1 and args.world_size <= 0:
         run_recbole(
             model=args.model, dataset=args.dataset, config_file_list=config_file_list, config_dict=config_dict
