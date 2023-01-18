@@ -476,7 +476,7 @@ class Config(object):
             self.final_config_dict["device"] = (
                 torch.device("cpu")
                 if len(gpu_id) == 0 or not torch.cuda.is_available()
-                else torch.device("mps") #torch.device("cuda")
+                else torch.device("cuda") #torch.device("mps")
             )
         else:
             assert len(gpu_id.split(",")) >= self.final_config_dict["nproc"]
