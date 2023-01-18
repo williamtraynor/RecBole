@@ -1,10 +1,12 @@
-dataset: lfm-100k
+dataset: music4all_1M
 model: BERT4Rec
 epochs: 250
 loss_type: CE
 state: ERROR
 #data_path: /Users/williamtraynor/Documents/seqreq_code/MSciProject/RecBoleFrk/dataset
-data_path: /Users/mengzaiqiao/Documents/William/WilliamRecBole/dataset
+#data_path: /Users/mengzaiqiao/Documents/William/WilliamRecBole/dataset
+data_path: /nfs/william/RecBole/dataset
+
 
 use_gpu: True
 
