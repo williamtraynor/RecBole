@@ -1,0 +1,15 @@
+#BEST
+#num_layers:5, dropout:0.24798525932690565, embedding_size:1024, hidden_size:1024, learning_rate:0.000438366407824551, train_batch_size:2048
+Valid result:
+recall@10 : 0.1745    mrr@10 : 0.1231    ndcg@10 : 0.1355    hit@10 : 0.1745    precision@10 : 0.0174
+Test result:
+recall@10 : 0.134    mrr@10 : 0.0976    ndcg@10 : 0.1063    hit@10 : 0.134    precision@10 : 0.0134
+
+
+#num_layers:5, dropout:0.3983380868610966, embedding_size:512, hidden_size:1024, learning_rate:0.00045586451720241056, train_batch_size:2048
+Valid result:
+recall@10 : 0.1745    mrr@10 : 0.1223    ndcg@10 : 0.135    hit@10 : 0.1745    precision@10 : 0.0174
+Test result:
+recall@10 : 0.1344    mrr@10 : 0.0951    ndcg@10 : 0.1045    hit@10 : 0.1344    precision@10 : 0.0134
+
+python3 run_recbole.py --model=BERT4Rec --loss_type=CE --train_neg_sample_args=None --dataset=music4all_1M --use_gpu=True --log_wandb=True --num_layers=5 --dropout=0.3983380868610966 --embedding_size=512 --hidden_size=1024 --learning_rate=0.00045586451720241056 --train_batch_size=2048

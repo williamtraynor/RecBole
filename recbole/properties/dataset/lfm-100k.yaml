@@ -5,7 +5,7 @@ seq_separator: "\t"              # (str) Separator inside the sequence features.
 # Basic Information
 USER_ID_FIELD: user_id          # (str) Field name of user ID feature.
 ITEM_ID_FIELD: track_id         # (str) Field name of item ID feature.
-#ALBUM_ID_FIELD: album_id       # (str) Field name of album ID feature.
+ALBUM_ID_FIELD: album_id       # (str) Field name of album ID feature.
 SKIPPED_FIELD: skipped          # (str) Field name of rating feature.
 TIME_FIELD: timestamp           # (str) Field name of timestamp feature.
 seq_len: ~                      # (dict) Field name of sequence feature: maximum length of each sequence
@@ -31,7 +31,7 @@ relation_kg_num_interval: ~     # (str) Relation interval for filtering kg, such
 
 # Selectively Loading
 load_col:                       # (dict) The suffix of atomic files: (list) field names to be loaded.
-    inter: [user_id, track_id, timestamp, skipped]
+    inter: [user_id, track_id, album_id, timestamp, skipped]
 unload_col: ~                   # (dict) The suffix of atomic files: (list) field names NOT to be loaded.
 unused_col: ~                   # (dict) The suffix of atomic files: (list) field names which are loaded but not used.
 

@@ -90,3 +90,28 @@ recall@10 : 0.2055    mrr@10 : 0.2361    ndcg@10 : 0.2009    hit@10 : 0.2675    
 Test result:
 recall@10 : 0.2029    mrr@10 : 0.23    ndcg@10 : 0.198    hit@10 : 0.2576    precision@10 : 0.0421
 
+embedding_size:4096
+Valid result:
+recall@10 : 0.2111    mrr@10 : 0.2407    ndcg@10 : 0.2047    hit@10 : 0.2747    precision@10 : 0.0454
+Test result:
+recall@10 : 0.2077    mrr@10 : 0.2337    ndcg@10 : 0.2014    hit@10 : 0.2652    precision@10 : 0.043
+
+embedding_size:1024
+Valid result:
+recall@10 : 0.2061    mrr@10 : 0.2383    ndcg@10 : 0.202    hit@10 : 0.2686    precision@10 : 0.0446
+Test result:
+recall@10 : 0.2062    mrr@10 : 0.2334    ndcg@10 : 0.2008    hit@10 : 0.2634    precision@10 : 0.0428
+
+embedding_size:2048
+Valid result:
+recall@10 : 0.2112    mrr@10 : 0.2398    ndcg@10 : 0.2039    hit@10 : 0.2754    precision@10 : 0.0453
+Test result:
+recall@10 : 0.2074    mrr@10 : 0.2333    ndcg@10 : 0.2009    hit@10 : 0.2649    precision@10 : 0.0429
+
+
+learning_rate: 0.001
+n_layers: 1 # choice [1] #[1,2,3,4]
+reg_weight: 0.001 # choice [0.001] # [1e-05,1e-04,1e-03,1e-02]
+embedding_size=4096
+
+python3 run_recbole.py --model=BPR --dataset=lfm-100k --use_gpu=True --log_wandb=True --embedding_size=4096 --reg_weigth=0.001 --n_layers=1 --learning_rate=0.001

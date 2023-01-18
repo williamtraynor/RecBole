@@ -143,3 +143,74 @@ recall@10 : 0.1629    mrr@10 : 0.0889    ndcg@10 : 0.107    hit@10 : 0.1629    p
 Test result:
 recall@10 : 0.1621    mrr@10 : 0.1016    ndcg@10 : 0.1165    hit@10 : 0.1621    precision@10 : 0.0162
 
+
+------
+
+
+dropout:0.26934981257246726, embedding_size:4096, hidden_size:512, learning_rate:0.0005452021907305256, num_layers:5, train_batch_size:8192
+Valid result:
+recall@10 : 0.1665    mrr@10 : 0.0907    ndcg@10 : 0.1093    hit@10 : 0.1665    precision@10 : 0.0167
+Test result:
+recall@10 : 0.1657    mrr@10 : 0.1036    ndcg@10 : 0.119    hit@10 : 0.1657    precision@10 : 0.0166
+
+dropout:0.26934981257246726, embedding_size:2048, hidden_size:512, learning_rate:0.0005452021907305256, num_layers:5, train_batch_size:8192
+Valid result:
+recall@10 : 0.1665    mrr@10 : 0.0907    ndcg@10 : 0.1093    hit@10 : 0.1665    precision@10 : 0.0167
+Test result:
+recall@10 : 0.1657    mrr@10 : 0.1036    ndcg@10 : 0.119    hit@10 : 0.1657    precision@10 : 0.0166
+
+dropout:0.26934981257246726, embedding_size:2048, hidden_size:512, learning_rate:0.0005452021907305256, num_layers:5, train_batch_size:16384
+Valid result:
+recall@10 : 0.1657    mrr@10 : 0.0906    ndcg@10 : 0.109    hit@10 : 0.1657    precision@10 : 0.0166
+Test result:
+recall@10 : 0.1643    mrr@10 : 0.1026    ndcg@10 : 0.1178    hit@10 : 0.1643    precision@10 : 0.0164
+
+dropout:0.26934981257246726, embedding_size:4096, hidden_size:512, learning_rate:0.0005452021907305256, num_layers:9, train_batch_size:8192
+Valid result:
+recall@10 : 0.1665    mrr@10 : 0.0907    ndcg@10 : 0.1093    hit@10 : 0.1665    precision@10 : 0.0167
+Test result:
+recall@10 : 0.1657    mrr@10 : 0.1036    ndcg@10 : 0.119    hit@10 : 0.1657    precision@10 : 0.0166
+
+dropout:0.26934981257246726, embedding_size:1024, hidden_size:512, learning_rate:0.0005452021907305256, num_layers:9, train_batch_size:8192
+Valid result:
+recall@10 : 0.1665    mrr@10 : 0.0907    ndcg@10 : 0.1093    hit@10 : 0.1665    precision@10 : 0.0167
+Test result:
+recall@10 : 0.1657    mrr@10 : 0.1036    ndcg@10 : 0.119    hit@10 : 0.1657    precision@10 : 0.0166
+
+dropout:0.26934981257246726, embedding_size:4096, hidden_size:512, learning_rate:0.0005452021907305256, num_layers:9, train_batch_size:16384
+Valid result:
+recall@10 : 0.1657    mrr@10 : 0.0906    ndcg@10 : 0.109    hit@10 : 0.1657    precision@10 : 0.0166
+Test result:
+recall@10 : 0.1643    mrr@10 : 0.1026    ndcg@10 : 0.1178    hit@10 : 0.1643    precision@10 : 0.0164
+
+dropout:0.26934981257246726, embedding_size:2048, hidden_size:512, learning_rate:0.0005452021907305256, num_layers:9, train_batch_size:16384
+Valid result:
+recall@10 : 0.1657    mrr@10 : 0.0906    ndcg@10 : 0.109    hit@10 : 0.1657    precision@10 : 0.0166
+Test result:
+recall@10 : 0.1643    mrr@10 : 0.1026    ndcg@10 : 0.1178    hit@10 : 0.1643    precision@10 : 0.0164
+
+dropout:0.26934981257246726, embedding_size:2048, hidden_size:512, learning_rate:0.0005452021907305256, num_layers:7, train_batch_size:16384
+Valid result:
+recall@10 : 0.1657    mrr@10 : 0.0906    ndcg@10 : 0.109    hit@10 : 0.1657    precision@10 : 0.0166
+Test result:
+recall@10 : 0.1643    mrr@10 : 0.1026    ndcg@10 : 0.1178    hit@10 : 0.1643    precision@10 : 0.0164
+
+dropout:0.26934981257246726, embedding_size:1024, hidden_size:512, learning_rate:0.0005452021907305256, num_layers:7, train_batch_size:16384
+Valid result:
+recall@10 : 0.1657    mrr@10 : 0.0906    ndcg@10 : 0.109    hit@10 : 0.1657    precision@10 : 0.0166
+Test result:
+recall@10 : 0.1643    mrr@10 : 0.1026    ndcg@10 : 0.1178    hit@10 : 0.1643    precision@10 : 0.0164
+
+dropout:0.26934981257246726, embedding_size:1024, hidden_size:512, learning_rate:0.0005452021907305256, num_layers:5, train_batch_size:16384
+Valid result:
+recall@10 : 0.1657    mrr@10 : 0.0906    ndcg@10 : 0.109    hit@10 : 0.1657    precision@10 : 0.0166
+Test result:
+recall@10 : 0.1643    mrr@10 : 0.1026    ndcg@10 : 0.1178    hit@10 : 0.1643    precision@10 : 0.0164
+
+---
+
+
+#num_layers:5, dropout:0.34033684489519966, embedding_size:1024, hidden_size:512, learning_rate:0.0010010328753157064, train_batch_size:4096
+
+python3 run_recbole.py --model=SASRec --loss_type=BPR --dataset=lfm-100k --use_gpu=True --log_wandb=True --dropout=0.34033684489519966 --embedding_size=1024 --hidden_size=512 --learning_rate=0.0010010328753157064 --num_layers=5 --train_batch_size=4096
+

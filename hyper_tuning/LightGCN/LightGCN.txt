@@ -59,3 +59,5 @@ recall@10 : 0.1904    mrr@10 : 0.2202    ndcg@10 : 0.1861    hit@10 : 0.2509    
 Test result:
 recall@10 : 0.192    mrr@10 : 0.2171    ndcg@10 : 0.1868    hit@10 : 0.2453    precision@10 : 0.0402
 
+embedding_size:1024, learning_rate:0.005, n_layers:1, reg_weight:0.01
+python3 run_recbole.py --model=LightGCN --dataset=music4all_1M --use_gpu=True --log_wandb=True --embedding_size=1024 --learning_rate=0.005 --n_layers=1 --reg_weight=0.01

@@ -71,3 +71,12 @@ recall@10 : 0.0012    mrr@10 : 0.0008    ndcg@10 : 0.0009    hit@10 : 0.0012    
 Test result:
 recall@10 : 0.0004    mrr@10 : 0.0001    ndcg@10 : 0.0001    hit@10 : 0.0004    precision@10 : 0.0
 
+---
+
+#num_layers:5, dropout:0.6912654727662058, embedding_size:512, hidden_size:1024, learning_rate:0.0006302114715152295, train_batch_size:4096
+Valid result:
+recall@10 : 0.1322    mrr@10 : 0.0641    ndcg@10 : 0.0801    hit@10 : 0.1322    precision@10 : 0.0132
+Test result:
+recall@10 : 0.1064    mrr@10 : 0.0535    ndcg@10 : 0.0658    hit@10 : 0.1064    precision@10 : 0.0106
+
+python3 run_recbole.py --model=BERT4Rec --loss_type=BPR --dataset=lfm-100k --use_gpu=True --log_wandb=True --num_layers=5 --dropout=0.6912654727662058 --embedding_size=512 --hidden_size=1024 --learning_rate=0.0006302114715152295 --train_batch_size=4096
