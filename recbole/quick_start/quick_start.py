@@ -69,8 +69,6 @@ def run_recbole(
     dataset = create_dataset(config)
     logger.info(dataset)
 
-    logger.info(type(dataset), dataset['skipped'])
-
     print('Dataset:\n', dataset)
 
     # dataset splitting
