@@ -15,7 +15,7 @@ NEG_PREFIX: neg_                # (str) Negative sampling prefix for pair-wise d
 # Sequential Model Needed
 ITEM_LIST_LENGTH_FIELD: item_length   # (str) Field name of the feature representing item sequences' length. 
 LIST_SUFFIX: _list              # (str) Suffix of field names which are generated as sequences.
-MAX_ITEM_LIST_LENGTH: MAX_ITEM        # (int) Maximum length of each generated sequence.
+MAX_ITEM_LIST_LENGTH: inf        # (int) Maximum length of each generated sequence.
 POSITION_FIELD: position_id     # (str) Field name of the generated position sequence.
 
 user_inter_num_interval: '[5,inf)'
