@@ -7,6 +7,8 @@ state: ERROR
 #data_path: /Users/mengzaiqiao/Documents/William/WilliamRecBole/dataset
 data_path: /nfs/william/RecBole/dataset
 
+display_file: True
+
 use_gpu: True
 
 seed: 2020
