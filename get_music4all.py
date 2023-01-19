@@ -3,15 +3,39 @@ import pandas as pd
 import requests
 import bz2
 import os
+import sys
+import re
 
 # URL for the timestamp interactions dataset
 
+def get_fname(url):
+
+    url = url.split('?')[0]
+    compressed_fname = url.split('/')[-1]
+    fname = '.'.join(compressed_fname.split('.')[:-1])
+
+    return fname
+
 def download_file(url):
 
-    compressed = requests.get(url).content
-    data = bz2.decompress(compressed)
+    file_name = get_fname(url)
 
-    open('userid_trackid_timestamp.tsv', 'wb').write(data)
+    with open(file_name, "wb") as f:
+        print("Downloading %s" % file_name)
+        response = requests.get(url, stream=True)
+        total_length = response.headers.get('content-length')
+
+        if total_length is None: # no content length header
+            f.write(response.content)
+        else:
+            dl = 0
+            total_length = int(total_length)
+            for data in response.iter_content(chunk_size=4096):
+                dl += len(data)
+                f.write(data)
+                done = int(50 * dl / total_length)
+                sys.stdout.write("\r|%s%s|" % ('■' * done, ' ' * (50-done)) )    
+                sys.stdout.flush()
 
 def get_dataset_stats(data):
 
@@ -104,7 +128,9 @@ if __name__ == '__main__':
 
     print('Downloading File...')
     interactions_url = 'https://zenodo.org/record/6609677/files/userid_trackid_timestamp.tsv.bz2?download=1'
-    download_file(interactions_url)
+    url = 'https://zenodo.org/record/6609677/files/processed_lyrics.tar.gz?download=1'
+
+    download_file(url)
     print('File Downloaded')
     print('Creating dataset for RecBole')
     data = read_music4all(chunksize=10**6)
