@@ -28,14 +28,16 @@ def download_file(url):
         if total_length is None: # no content length header
             f.write(response.content)
         else:
+            decomp = bz2.BZ2Decompressor()
             dl = 0
             total_length = int(total_length)
             for data in response.iter_content(chunk_size=4096):
                 dl += len(data)
-                f.write(data)
+                f.write(decomp.decompress(data))
                 done = int(50 * dl / total_length)
                 sys.stdout.write("\r|%s%s|" % ('■' * done, ' ' * (50-done)) )    
                 sys.stdout.flush()
+
 
 def get_dataset_stats(data):
 
