@@ -1,13 +1,13 @@
-dataset: lfm-100k
+dataset: music4all_1M
 model: BPR
 epochs: 250
 state: ERROR
 #data_path: /Users/williamtraynor/Documents/seqreq_code/MSciProject/RecBoleFrk/dataset
 data_path: /Users/mengzaiqiao/Documents/William/WilliamRecBole/dataset
 
-learning_rate: 0.001 # choice [0.01] #[0.01,0.005,0.001,0.0005,0.0001]
-n_layers: 1 # choice [1] #[1,2,3,4]
-reg_weight: 0.001 # choice [0.001] # [1e-05,1e-04,1e-03,1e-02]
+#learning_rate: 0.001 # choice [0.01] #[0.01,0.005,0.001,0.0005,0.0001]
+#n_layers: 1 # choice [1] #[1,2,3,4]
+#reg_weight: 0.001 # choice [0.001] # [1e-05,1e-04,1e-03,1e-02]
 
 use_gpu: True
 
@@ -22,11 +22,9 @@ seq_separator: "\t"
 # Common Features
 USER_ID_FIELD: user_id
 ITEM_ID_FIELD: track_id
-RATING_FIELD: rating
 TIME_FIELD: timestamp
 seq_len: ~
 # Label for Point-wise DataLoader
-LABEL_FIELD: skipped
 # NegSample Prefix for Pair-wise DataLoader
 NEG_PREFIX: neg_
 # Sequential Model Needed
@@ -42,7 +40,7 @@ ENTITY_ID_FIELD: entity_id
 
 # Selectively Loading
 load_col:
-    inter: [user_id, track_id, timestamp, skipped]
+    inter: [user_id, track_id, timestamp]
     #user: [user_id, age, gender, occupation]
     #item: [item_id, movie_title, release_year, class]
     #link: [item_id, entity_id]

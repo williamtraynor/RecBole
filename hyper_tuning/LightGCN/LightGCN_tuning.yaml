@@ -1,4 +1,4 @@
-dataset: lfm-100k
+dataset: music4all_1M
 model: LightGCN
 epochs: 250
 state: ERROR
