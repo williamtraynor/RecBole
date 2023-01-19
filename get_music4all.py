@@ -126,11 +126,8 @@ def format_for_recbole(data, directory):
 
 if __name__ == '__main__':
 
-    print('Downloading File...')
     interactions_url = 'https://zenodo.org/record/6609677/files/userid_trackid_timestamp.tsv.bz2?download=1'
-    url = 'https://zenodo.org/record/6609677/files/processed_lyrics.tar.gz?download=1'
-
-    download_file(url)
+    download_file(interactions_url)
     print('File Downloaded')
     print('Creating dataset for RecBole')
     data = read_music4all(chunksize=10**6)
