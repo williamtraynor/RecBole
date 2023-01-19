@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import requests
 import bz2
+import os
 
 # URL for the timestamp interactions dataset
 
@@ -88,9 +89,16 @@ def format_for_recbole(data, directory):
     else:
         name = f'music4all_{size//10**6}M'
 
-    new_data.to_csv(f'{directory}/{name}/{name}.inter' ,sep='\t', index=False)
-    new_data['user_id:token'].to_csv(f'{directory}/{name}/{name}.user' ,sep='\t', index=False)
-    new_data['track_id:token'].to_csv(f'{directory}/{name}/{name}.item' ,sep='\t', index=False)
+    data_path = f'{directory}/{name}'
+
+    if os.path.exists(data_path):
+        pass
+    else:
+        os.mkdir(data_path)
+
+    new_data.to_csv(f'{data_path}/{name}.inter' ,sep='\t', index=False)
+    new_data['user_id:token'].to_csv(f'{data_path}/{name}.user' ,sep='\t', index=False)
+    new_data['track_id:token'].to_csv(f'{data_path}/{name}.item' ,sep='\t', index=False)
 
 if __name__ == '__main__':
 
@@ -98,6 +106,6 @@ if __name__ == '__main__':
 
     interactions_url = 'https://zenodo.org/record/6609677/files/userid_trackid_timestamp.tsv.bz2?download=1'
     download_file(interactions_url)
-    data = read_music4all(chunk = 10**6)
-    format_for_recbole(data, directory='dataset')
+    data = read_music4all(chunksize=10**6)
+    format_for_recbole(data, directory=os.getcwd()+'/dataset')
 
