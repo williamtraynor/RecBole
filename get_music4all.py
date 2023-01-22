@@ -5,6 +5,7 @@ import bz2
 import os
 import sys
 import re
+import argparse
 
 # URL for the timestamp interactions dataset
 
@@ -128,11 +129,17 @@ def format_for_recbole(data, directory):
 
 if __name__ == '__main__':
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--chunksize", "-ch", type=int, default=10**7, help="size of the dataset to be downloaded")
+    
+    args, _ = parser.parse_known_args()
+
+
     interactions_url = 'https://zenodo.org/record/6609677/files/userid_trackid_timestamp.tsv.bz2?download=1'
     download_file(interactions_url)
     print('File Downloaded')
     print('Creating dataset for RecBole')
-    data = read_music4all(chunksize=10**6)
+    data = read_music4all(chunksize=args.chunksize)
     format_for_recbole(data, directory=os.getcwd()+'/dataset')
     print('Dataset Created\nDone :)')
 
