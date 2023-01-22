@@ -21,23 +21,29 @@ def download_file(url):
 
     file_name = get_fname(url)
 
-    with open(file_name, "wb") as f:
-        print("Downloading %s" % file_name)
-        response = requests.get(url, stream=True)
-        total_length = response.headers.get('content-length')
+    print(f'Filename: {file_name}')
 
-        if total_length is None: # no content length header
-            f.write(response.content)
-        else:
-            decomp = bz2.BZ2Decompressor()
-            dl = 0
-            total_length = int(total_length)
-            for data in response.iter_content(chunk_size=4096):
-                dl += len(data)
-                f.write(decomp.decompress(data))
-                done = int(50 * dl / total_length)
-                sys.stdout.write("\r|%s%s|" % ('■' * done, ' ' * (50-done)) )    
-                sys.stdout.flush()
+    if os.path.exists(file_name):
+        return 
+    else:
+        with open(file_name, "wb") as f:
+            print("Downloading %s" % file_name)
+            response = requests.get(url, stream=True)
+            total_length = response.headers.get('content-length')
+
+            if total_length is None: # no content length header
+                f.write(response.content)
+            else:
+                decomp = bz2.BZ2Decompressor()
+                dl = 0
+                total_length = int(total_length)
+                for data in response.iter_content(chunk_size=4096):
+                    dl += len(data)
+                    f.write(decomp.decompress(data))
+                    done = int(50 * dl / total_length)
+                    sys.stdout.write("\r|%s%s|" % ('■' * done, ' ' * (50-done)) )    
+                    sys.stdout.flush()
+    
 
 
 def get_dataset_stats(data):
