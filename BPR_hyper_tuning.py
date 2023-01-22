@@ -60,7 +60,7 @@ def tune(algo):
 
 class TestHyperTuning(unittest.TestCase):
     def test_GRU(self):
-        tune(algo="exhaustive")
+        tune(algo="bayes")
 
 
 if __name__ == "__main__":
