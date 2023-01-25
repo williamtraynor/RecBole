@@ -49,7 +49,6 @@ def download_file(url):
 def get_dataset_stats(data):
 
     user_actions = data.groupby(['user_id']).count()['track_id']
-    item_plays = data.groupby(['track_id']).count()['user_id']
 
     num_users = len(data['user_id'].unique())
     num_tracks = len(data['track_id'].unique())
@@ -57,29 +56,6 @@ def get_dataset_stats(data):
     unique_actions = data[['user_id', 'track_id']].drop_duplicates()
 
     unique_sparsity = 100 * (1 - round( (len(unique_actions)/(num_users * num_tracks)) , 4))
-    sparsity = 100 * (1 - round( (len(data)/(num_users * num_tracks)) , 4))
-
-    #------------------------------------------------------------------------------
-    """
-    print(f'''
-    Interactions: {len(data)}
-    Unique Interactions: {len(unique_actions)}
-    Num Users: {num_users}
-    Num Tracks: {num_tracks}
-    Earliest Interaction: {max(data.timestamp)}
-    Latest Interaction: {min(data.timestamp)}
-    
-    There are {len(user_actions)} users.
-    There are {sum(user_actions<listen_cap)} users with less than {listen_cap} listens
-    Each user has an average of {int(np.mean(user_actions))} listens.
-
-    There are {len(item_plays)} tracks.
-    Each track has an average of {int(np.mean(item_plays))} plays.
-    Unique Interaction Data Sparsity: {unique_sparsity}%
-    Sparsity with Repeated Interactions: {sparsity}%
-
-    ''')
-    """
 
     #------------------------------------------------------------------------------
     # MAIN STATISTICS
@@ -110,11 +86,16 @@ def read_music4all(chunksize=False):
         return data
 
 
-def format_for_recbole(data, directory):
+def format_for_recbole(data, directory, rewrite=True):
 
     new_data = data.copy()
     new_data.timestamp = pd.to_datetime(data.timestamp).astype(int) / 10**9
     new_data.columns = ['user_id:token', 'track_id:token', 'timestamp:float']
+
+    track_data = {'track_id:token':new_data['track_id:token'].unique()}
+    unique_tracks = pd.DataFrame(track_data)
+    user_data = {'user_id:token':new_data['user_id:token'].unique()}
+    unique_users = pd.DataFrame(user_data)
 
     size = len(new_data)
     if size < 10**6:  
@@ -129,9 +110,10 @@ def format_for_recbole(data, directory):
     else:
         os.mkdir(data_path)
 
-    new_data.to_csv(f'{data_path}/{name}.inter' ,sep='\t', index=False)
-    new_data['user_id:token'].to_csv(f'{data_path}/{name}.user' ,sep='\t', index=False)
-    new_data['track_id:token'].to_csv(f'{data_path}/{name}.item' ,sep='\t', index=False)
+    if rewrite:
+        new_data.to_csv(f'{data_path}/{name}.inter' ,sep='\t', index=False)
+        unique_users.to_csv(f'{data_path}/{name}.user' ,sep='\t', index=False)
+        unique_tracks.to_csv(f'{data_path}/{name}.item' ,sep='\t', index=False)
 
 if __name__ == '__main__':
 
