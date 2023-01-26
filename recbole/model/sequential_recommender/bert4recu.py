@@ -263,10 +263,11 @@ class BERT4RecU(SequentialRecommender):
         return scores
 
     def full_sort_predict(self, interaction):
+        user_id = interaction[self.USER_ID]
         item_seq = interaction[self.ITEM_SEQ]
         item_seq_len = interaction[self.ITEM_SEQ_LEN]
         item_seq = self.reconstruct_test_data(item_seq, item_seq_len)
-        seq_output = self.forward(item_seq)
+        seq_output = self.forward(item_seq, user_id)
         seq_output = self.gather_indexes(seq_output, item_seq_len)  # [B H]
         test_users_emb = self.user_embedding.weight[:self.n_items]
         test_items_emb = self.item_embedding.weight[:self.n_items]  # delete masked token
