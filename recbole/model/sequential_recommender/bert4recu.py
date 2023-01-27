@@ -269,9 +269,13 @@ class BERT4RecU(SequentialRecommender):
         item_seq = self.reconstruct_test_data(item_seq, item_seq_len)
         seq_output = self.forward(item_seq, user_id)
         seq_output = self.gather_indexes(seq_output, item_seq_len)  # [B H]
-        test_users_emb = self.user_embedding.weight[:self.n_items]
         test_items_emb = self.item_embedding.weight[:self.n_items]  # delete masked token
+
+        self.logger.info(f'''
+        Item Embedding Shape: {test_items_emb.shape}
+        ''')
+
         scores = torch.matmul(
-            seq_output, (test_items_emb + test_users_emb).transpose(0, 1)
+            seq_output, test_items_emb.transpose(0, 1)
         )  # [B, item_num]
         return scores
