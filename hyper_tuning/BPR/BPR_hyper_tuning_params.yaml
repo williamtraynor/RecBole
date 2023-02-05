@@ -1,1 +1,4 @@
-embedding_size choice [1024,2048,4096]
+#embedding_size choice [1024,2048,4096]
+learning_rate choice [0.01, 0.001, 0.0001, 0.00001]
+train_batch_size choice [512, 1024, 2048, 4096]
+

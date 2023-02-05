@@ -1,6 +1,6 @@
 # Atomic File Format
 field_separator: "\t"           # (str) Separator of different columns in atomic files.
-seq_separator: " "              # (str) Separator inside the sequence features.
+seq_separator: "\t"              # (str) Separator inside the sequence features.
 
 # Basic Information
 USER_ID_FIELD: user_id          # (str) Field name of user ID feature.
@@ -18,8 +18,8 @@ LIST_SUFFIX: _list              # (str) Suffix of field names which are generate
 MAX_ITEM_LIST_LENGTH: 50        # (int) Maximum length of each generated sequence.
 POSITION_FIELD: position_id     # (str) Field name of the generated position sequence.
 
-user_inter_num_interval: "[5, inf)"
-item_inter_num_interval: "[5, inf)"
+user_inter_num_interval: "[10,inf)"
+item_inter_num_interval: "[10,inf)"
 
 # Knowledge-based Model Needed
 HEAD_ENTITY_ID_FIELD: head_id   # (str) Field name of the head entity ID feature.
@@ -30,34 +30,24 @@ kg_reverse_r: False             # (bool) Whether to reverse relations of triples
 entity_kg_num_interval: ~       # (str) Entity interval for filtering kg, such as [A,B] / [A,B) / (A,B) / (A,B].
 relation_kg_num_interval: ~     # (str) Relation interval for filtering kg, such as [A,B] / [A,B) / (A,B) / (A,B].
 
-#additional_feat_suffix: [itemaudioemb]
-#additional_feat_suffix: [itemlyricemb]
-additional_feat_suffix: [outerprodpcaemb]
 # Selectively Loading
 load_col:                       # (dict) The suffix of atomic files: (list) field names to be loaded.
     inter: [user_id, track_id, timestamp]
-    #item: [track_id, item_emb]
-    #itemlyricemb: [iid, item_emb]
-    #itemaudioemb: [iid, item_emb]
-    outerprodpcaemb: [iid, item_emb]
-alias_of_item_id: [iid]
-preload_weight:
-    iid: item_emb
 unload_col: ~                   # (dict) The suffix of atomic files: (list) field names NOT to be loaded.
 unused_col: ~                   # (dict) The suffix of atomic files: (list) field names which are loaded but not used.
 
-
 # Filtering
-rm_dup_inter: first                 # (str) Whether to remove duplicated user-item interactions.
+rm_dup_inter: ~                 # (str) Whether to remove duplicated user-item interactions.
 val_interval: ~                 # (dict) Filter inter by values in {value field (str): interval (str)}.
 filter_inter_by_user_or_item: True    # (bool) Whether or not to filter inter by user or item.
-#user_inter_num_interval: ~      # (str) User interval for filtering inter, such as [A,B] / [A,B) / (A,B) / (A,B].
-#item_inter_num_interval: ~      # (str) Item interval for filtering inter, such as [A,B] / [A,B) / (A,B) / (A,B].
+user_inter_num_interval: ~      # (str) User interval for filtering inter, such as [A,B] / [A,B) / (A,B) / (A,B].
+item_inter_num_interval: ~      # (str) Item interval for filtering inter, such as [A,B] / [A,B) / (A,B) / (A,B].
 
 # Preprocessing
-#alias_of_user_id: ~             # (list) Fields' names remapped into the same index system with USER_ID_FIELD.
-#alias_of_item_id: ~             # (list) Fields' names remapped into the same index system with ITEM_ID_FIELD.
-#alias_of_entity_id: ~           # (list) Fields' names remapped into the same index system with ENTITY_ID_FIELD.
-#alias_of_relation_id: ~         # (list) Fields' names remapped into the same index system with RELATION_ID_FIELD.
-#normalize_field: ~              # (list) List of filed names to be normalized.
-#normalize_all: True            # (bool) Whether or not to normalize all the float like fields.
+alias_of_user_id: ~             # (list) Fields' names remapped into the same index system with USER_ID_FIELD.
+alias_of_item_id: ~             # (list) Fields' names remapped into the same index system with ITEM_ID_FIELD.
+alias_of_entity_id: ~           # (list) Fields' names remapped into the same index system with ENTITY_ID_FIELD.
+alias_of_relation_id: ~         # (list) Fields' names remapped into the same index system with RELATION_ID_FIELD.
+preload_weight: ~               # (dict) Preloaded weight in {IDs (token): pretrained vectors (float-like)}.
+normalize_field: ~              # (list) List of filed names to be normalized.
+normalize_all: True            # (bool) Whether or not to normalize all the float like fields.

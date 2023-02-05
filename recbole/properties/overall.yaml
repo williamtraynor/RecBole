@@ -39,14 +39,14 @@ transform: ~                    # (str) The transform operation for batch data p
 
 # Evaluation Settings
 eval_args:                      # (dict) 4 keys: group_by, order, split, and mode
-  split: {'LS':'valid_and_test'} #{'RS':[0.8,0.1,0.1]}   # (dict) The splitting strategy ranging in ['RS','LS'].
+  split: {'RS':[0.8,0.1,0.1]} # {'LS':'valid_and_test'}  # (dict) The splitting strategy ranging in ['RS','LS'].
   group_by: user                # (str) The grouping strategy ranging in ['user', 'none'].
-  order: TO                     # (str) The ordering strategy ranging in ['RO', 'TO'].
+  order: RO                     # (str) The ordering strategy ranging in ['RO', 'TO'].
   mode: full                    # (str) The evaluation mode ranging in ['full','unixxx','popxxx','labeled'].
 repeatable: False               # (bool) Whether to evaluate results with a repeatable recommendation scene. 
-metrics: ["Recall","MRR","NDCG","Hit","Precision"]  # (list or str) Evaluation metrics.
-topk: [5,10,20]                      # (list or int or None) The value of k for topk evaluation metrics.
-valid_metric: MRR@10            # (str) The evaluation metric for early stopping. 
+metrics: ["Recall","MRR","NDCG","Hit","Precision","ItemCoverage", "AveragePopularity", "GiniIndex", "ShannonEntropy", "TailPercentage"]  # (list or str) Evaluation metrics.
+topk: [10]                      # (list or int or None) The value of k for topk evaluation metrics.
+valid_metric: NDCG@10            # (str) The evaluation metric for early stopping. 
 valid_metric_bigger: True       # (bool) Whether to take a bigger valid metric value as a better result.
 eval_batch_size: 4096           # (int) The evaluation batch size.
 metric_decimal_place: 4         # (int) The decimal place of metric scores.

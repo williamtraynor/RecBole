@@ -34,9 +34,16 @@ class BPR(GeneralRecommender):
         # load parameters info
         self.embedding_size = config["embedding_size"]
 
+        #self.logger.info('HELLO')
+        #self.logger.info(dataset.field2token_id['track_id'])
+
         # define layers and loss
-        self.user_embedding = nn.Embedding(self.n_users, self.embedding_size)
-        self.item_embedding = nn.Embedding(self.n_items, self.embedding_size)
+        self.user_embedding = nn.Embedding(self.n_users, self.embedding_size).type(torch.FloatTensor)
+        self.item_embedding = nn.Embedding(self.n_items, self.embedding_size).type(torch.FloatTensor)
+        
+        #pretrained_item_emb = dataset.get_preload_weight('iid')
+        #self.item_embedding = nn.Embedding.from_pretrained(torch.from_numpy(pretrained_item_emb), freeze=False).type(torch.FloatTensor)
+        
         self.loss = BPRLoss()
 
         # parameters initialization
@@ -67,12 +74,17 @@ class BPR(GeneralRecommender):
     def forward(self, user, item):
         user_e = self.get_user_embedding(user)
         item_e = self.get_item_embedding(item)
+        #self.logger.info('FORWARD')
+        #self.logger.info(item)
         return user_e, item_e
 
     def calculate_loss(self, interaction):
         user = interaction[self.USER_ID]
         pos_item = interaction[self.ITEM_ID]
         neg_item = interaction[self.NEG_ITEM_ID]
+
+        #self.logger.info('ITEM ID')
+        #self.logger.info(pos_item)
 
         user_e, pos_e = self.forward(user, pos_item)
         neg_e = self.get_item_embedding(neg_item)
@@ -86,6 +98,7 @@ class BPR(GeneralRecommender):
         user = interaction[self.USER_ID]
         item = interaction[self.ITEM_ID]
         user_e, item_e = self.forward(user, item)
+        self.logger.info(type(item_e), type(user_e))
         return torch.mul(user_e, item_e).sum(dim=1)
 
     def full_sort_predict(self, interaction):

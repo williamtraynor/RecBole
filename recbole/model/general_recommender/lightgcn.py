@@ -64,6 +64,10 @@ class LightGCN(GeneralRecommender):
         self.item_embedding = torch.nn.Embedding(
             num_embeddings=self.n_items, embedding_dim=self.latent_dim
         )
+        #pretrained_item_emb = dataset.get_preload_weight('iid')
+        #self.item_embedding = torch.nn.Embedding.from_pretrained(torch.from_numpy(pretrained_item_emb), freeze=False).type(torch.FloatTensor)
+        
+
         self.mf_loss = BPRLoss()
         self.reg_loss = EmbLoss()
 

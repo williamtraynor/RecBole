@@ -525,6 +525,7 @@ class Dataset(torch.utils.data.Dataset):
 
     def _set_alias(self, alias_name, default_value):
         alias = self.config[f"alias_of_{alias_name}"] or []
+        #self.logger.info('ALIAS: ', alias)
         alias = np.array(list(filter(None, default_value)) + alias)
         _, idx = np.unique(alias, return_index=True)
         self.alias[alias_name] = alias[np.sort(idx)]
@@ -578,6 +579,8 @@ class Dataset(torch.utils.data.Dataset):
         or ``[id_token_length, seqlen]``. See :doc:`../user_guide/data/data_args` for detail arg setting.
         """
         preload_fields = self.config["preload_weight"]
+        #self.logger.info('PRELOAD FIELDS')
+        #self.logger.info(preload_fields)
         if preload_fields is None:
             return
 
@@ -1239,6 +1242,7 @@ class Dataset(torch.utils.data.Dataset):
         Returns:
             int: The number of different tokens (``1`` if ``field`` is a float-like field).
         """
+
         if field not in self.field2type:
             raise ValueError(f"Field [{field}] not defined in dataset.")
 
@@ -1250,6 +1254,7 @@ class Dataset(torch.utils.data.Dataset):
         elif self.field2type[field] not in {FeatureType.TOKEN, FeatureType.TOKEN_SEQ}:
             return self.field2seqlen[field]
         else:
+            #self.logger.info(self.field2id_token.keys())
             return len(self.field2id_token[field])
 
     def fields(self, ftype=None, source=None):
@@ -2119,7 +2124,9 @@ class Dataset(torch.utils.data.Dataset):
         Returns:
             numpy.ndarray: preloaded weight matrix. See :doc:`../user_guide/config/data_settings` for details.
         """
+        
         if field not in self._preloaded_weight:
+            self.logger.info(self._preloaded_weight)
             raise ValueError(f"Field [{field}] not in preload_weight")
         return self._preloaded_weight[field]
 
@@ -2135,8 +2142,17 @@ class Dataset(torch.utils.data.Dataset):
         new_data = {}
         for k in data:
             value = data[k].values
+            if type(value[0]) == str:
+                #self.logger.info(self.field2token_id)
+                new_value = []
+                for val in value:
+                    if val in self.field2token_id['track_id'].keys():
+                        new_value.append(self.field2token_id['track_id'][val])
+                value = new_value
+                #value = [self.field2token_id['track_id'][val] for val in value]
             ftype = self.field2type[k]
             if ftype == FeatureType.TOKEN:
+                #self.logger.info(value)
                 new_data[k] = torch.LongTensor(value)
             elif ftype == FeatureType.FLOAT:
                 if k in self.config["numerical_features"]:
