@@ -1,4 +1,4 @@
-embedding_size: 64              # (int) The latent dimension of auto-encoder.
+embedding_size: 128              # (int) The latent dimension of auto-encoder.
 dropout_prob: 0.5               # (float) The drop out probability of input.
 kfac: 10                        # (int) Number of facets (macro concepts).
 nogb: False                     # (bool) Whether to disable Gumbel-Softmax sampling.
