@@ -17,7 +17,7 @@ reproducibility: True
 
 # Atomic File Format
 field_separator: "\t"
-seq_separator: "\t"
+seq_separator: " "
 
 # Common Features
 USER_ID_FIELD: user_id
