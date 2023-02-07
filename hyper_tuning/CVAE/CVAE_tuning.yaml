@@ -52,12 +52,3 @@ preload_weight:
 unload_col: ~                   # (dict) The suffix of atomic files: (list) field names NOT to be loaded.
 unused_col: ~                   # (dict) The suffix of atomic files: (list) field names which are loaded but not used.
 
-
-# Preprocessing
-alias_of_user_id: ~
-alias_of_item_id: ~
-alias_of_entity_id: ~
-alias_of_relation_id: ~
-preload_weight: ~
-normalize_field: ~
-normalize_all: True
