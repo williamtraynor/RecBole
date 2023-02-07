@@ -52,20 +52,22 @@ class MacridVAE(GeneralRecommender):
 
         self.update = 0
 
+        self.item_embedding = nn.Embedding(self.n_items, self.embedding_size)
+        pretrained_item_emb = dataset.get_preload_weight('iid')
+        self.l_embedding_size = pretrained_item_emb.shape[1]
+        self.label = nn.Embedding.from_pretrained(torch.from_numpy(pretrained_item_emb), freeze=False).type(torch.FloatTensor)
+        
+        self.k_embedding = nn.Embedding(self.kfac, self.embedding_size + self.l_embedding_size) ##
+    
+
         self.history_item_id, self.history_item_value, _ = dataset.history_item_matrix()
         self.history_item_id = self.history_item_id.to(self.device)
         self.history_item_value = self.history_item_value.to(self.device)
         self.encode_layer_dims = (
-            [self.n_items] + self.layers + [self.embedding_size * 2]
+            [self.n_items] + self.layers + [(self.embedding_size + self.l_embedding_size) * 2]
         )
 
         self.encoder = self.mlp_layers(self.encode_layer_dims)
-
-        #self.item_embedding = nn.Embedding(self.n_items, self.embedding_size)
-        pretrained_item_emb = dataset.get_preload_weight('iid')
-        self.item_embedding = nn.Embedding.from_pretrained(torch.from_numpy(pretrained_item_emb), freeze=False).type(torch.FloatTensor)
-        
-        self.k_embedding = nn.Embedding(self.kfac, self.embedding_size)
 
         self.l2_loss = EmbLoss()
         # parameters initialization
@@ -98,6 +100,7 @@ class MacridVAE(GeneralRecommender):
     def mlp_layers(self, layer_dims):
         mlp_modules = []
         for i, (d_in, d_out) in enumerate(zip(layer_dims[:-1], layer_dims[1:])):
+            #self.logger.info(f'Len D_in {(d_in)} D_out{(d_out)}')
             mlp_modules.append(nn.Linear(d_in, d_out))
             if i != len(layer_dims[:-1]) - 1:
                 mlp_modules.append(nn.Tanh())
@@ -107,6 +110,7 @@ class MacridVAE(GeneralRecommender):
         if self.training:
             std = torch.exp(0.5 * logvar)
             epsilon = torch.zeros_like(std).normal_(mean=0, std=self.std)
+            #self.logger.info(mu.shape, epsilon.shape, std.shape)
             return mu + epsilon * std
         else:
             return mu
@@ -114,12 +118,15 @@ class MacridVAE(GeneralRecommender):
     def forward(self, rating_matrix):
 
         cores = F.normalize(self.k_embedding.weight, dim=1)
-        items = F.normalize(self.item_embedding.weight, dim=1)
+        items = F.normalize(self.item_embedding.weight , dim=1)
+        label = F.normalize(self.label.weight, dim=1) ##
+
+        input_weights = torch.concat((items, label), dim=1) ##
 
         rating_matrix = F.normalize(rating_matrix)
         rating_matrix = F.dropout(rating_matrix, self.drop_out, training=self.training)
 
-        cates_logits = torch.matmul(items, cores.transpose(0, 1)) / self.tau
+        cates_logits = torch.matmul(input_weights, cores.transpose(0, 1)) / self.tau ##
 
         if self.nogb:
             cates = torch.softmax(cates_logits, dim=-1)
@@ -135,19 +142,33 @@ class MacridVAE(GeneralRecommender):
             cates_k = cates[:, k].reshape(1, -1)
             # encoder
             x_k = rating_matrix * cates_k
+
+            #self.logger.info(f'X Shape {x_k.shape} Rating Matrix {rating_matrix.shape} Cates K {cates_k.shape} Labels {label.shape}')
+            
+            #x_k = torch.concat([x_k, self.label.weight.T])
+            #self.logger.info(f'X Shape {x_k.shape}')
+
             h = self.encoder(x_k)
-            mu = h[:, : self.embedding_size]
+            mu = h[:, : self.embedding_size + self.l_embedding_size]
             mu = F.normalize(mu, dim=1)
-            logvar = h[:, self.embedding_size :]
+
+            logvar = h[:, self.embedding_size + self.l_embedding_size :]
+
+            #self.logger.info(f'H Shape {h.shape}\tMu Shape {mu.shape}\tLogVar {logvar.shape}')
 
             mulist.append(mu)
             logvarlist.append(logvar)
 
             z = self.reparameterize(mu, logvar)
 
+            #self.logger.info('VAR SHAPES')
+
             # decoder
-            z_k = F.normalize(z, dim=1)
-            logits_k = torch.matmul(z_k, items.transpose(0, 1)) / self.tau
+            z_k = F.normalize(z, dim=1) 
+
+            #self.logger.info(f'Z_k: {z_k.shape} Input Weights: {input_weights.shape} Label: {label.shape}')
+
+            logits_k = torch.matmul(z_k, input_weights.transpose(0, 1)) / self.tau
             probs_k = torch.exp(logits_k)
             probs_k = probs_k * cates_k
             probs = probs_k if (probs is None) else (probs + probs_k)
