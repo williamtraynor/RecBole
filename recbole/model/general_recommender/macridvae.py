@@ -49,7 +49,10 @@ class MacridVAE(GeneralRecommender):
         self.std = config["std"]
 
         self.update = 0
-        self.build_histroy_items(dataset)
+
+        self.history_item_id, self.history_item_value, _ = dataset.history_item_matrix()
+        self.history_item_id = self.history_item_id.to(self.device)
+        self.history_item_value = self.history_item_value.to(self.device)
         self.encode_layer_dims = (
             [self.n_items] + self.layers + [self.embedding_size * 2]
         )
