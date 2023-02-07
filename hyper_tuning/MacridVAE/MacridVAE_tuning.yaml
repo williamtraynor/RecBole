@@ -1,5 +1,5 @@
 dataset: music4all_1M
-model: BPR
+model: MacridVAE
 epochs: 250
 state: ERROR
 #data_path: /Users/williamtraynor/Documents/seqreq_code/MSciProject/RecBoleFrk/dataset

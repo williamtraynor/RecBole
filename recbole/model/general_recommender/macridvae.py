@@ -21,13 +21,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from recbole.model.abstract_recommender import AutoEncoderMixin, GeneralRecommender
+from recbole.model.abstract_recommender import GeneralRecommender
 from recbole.model.init import xavier_normal_initialization
 from recbole.model.loss import EmbLoss
 from recbole.utils import InputType
 
 
-class MacridVAE(GeneralRecommender, AutoEncoderMixin):
+class MacridVAE(GeneralRecommender):
     r"""MacridVAE is an item-based collaborative filtering model that learns disentangled representations from user
     behavior and simultaneously ranks all items for each user.
     We implement the model following the original author.
