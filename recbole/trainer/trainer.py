@@ -145,6 +145,8 @@ class Trainer(AbstractTrainer):
         self.item_tensor = None
         self.tot_item_num = None
 
+        self.n_steps = config['n_steps']
+
     def _build_optimizer(self, **kwargs):
         r"""Init the Optimizer
 
@@ -235,6 +237,7 @@ class Trainer(AbstractTrainer):
 
         scaler = amp.GradScaler(enabled=self.enable_scaler)
         for batch_idx, interaction in enumerate(iter_data):
+            t = torch.randint(0, self.n_steps, (len(interaction),), device=self.device).long()
             interaction = interaction.to(self.device)
             self.optimizer.zero_grad()
             sync_loss = 0
@@ -243,7 +246,10 @@ class Trainer(AbstractTrainer):
                 sync_loss = self.sync_grad_loss()
 
             with torch.autocast(device_type=self.device.type, enabled=self.enable_amp):
-                losses = loss_func(interaction)
+                if self.model.__class__.__name__ == 'Diffusion':
+                    losses = loss_func(interaction, t)
+                else:
+                    losses = loss_func(interaction)
 
             if isinstance(losses, tuple):
                 loss = sum(losses)
