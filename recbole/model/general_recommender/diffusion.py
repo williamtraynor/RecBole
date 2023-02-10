@@ -33,6 +33,8 @@ class Diffusion(GeneralRecommender):
 
         self.n_steps = config['n_steps']
         self.batch_size = config['train_batch_size']
+        self.layers = config["mlp_hidden_size"]
+        self.lat_dim = config["latent_dimension"]
         #self.network = network.to(device)
         
         # Pre-calculate different terms for closed form
@@ -47,13 +49,32 @@ class Diffusion(GeneralRecommender):
         self.sqrt_one_minus_alphas_cumprod = torch.sqrt(1 - self.alphas_cumprod)
         self.posterior_variance = self.betas * (1 - self.alphas_cumprod_prev) / (1 - self.alphas_cumprod)
 
+        self.anneal_cap = config["anneal_cap"]
+        self.total_anneal_steps = config["total_anneal_steps"]
+
         self.model = SimpleUnet(config, dataset)
+
+        self.update = 0
 
         self.history_item_id, self.history_item_value, _ = dataset.history_item_matrix()
         self.history_item_id = self.history_item_id.to(self.device)
         self.history_item_value = self.history_item_value.to(self.device)
 
+        self.encode_layer_dims = [self.n_items] + self.layers + [self.lat_dim]
+        self.decode_layer_dims = [int(self.lat_dim)] + self.encode_layer_dims[::-1][
+            1:
+        ]
 
+        self.encoder = self.mlp_layers(self.encode_layer_dims)
+        self.decoder = self.mlp_layers(self.decode_layer_dims)
+
+        # Time embedding
+        self.time_emb_dim = self.lat_dim
+        self.time_mlp = nn.Sequential(
+                SinusoidalPositionEmbeddings(self.time_emb_dim),
+                nn.Linear(self.time_emb_dim, self.time_emb_dim),
+                nn.ReLU()
+            )
         # parameters initialization
         self.apply(xavier_normal_initialization)
 
@@ -65,26 +86,32 @@ class Diffusion(GeneralRecommender):
         batch_size = t.shape[0]
         out = vals.gather(-1, t.cpu())
         return out.reshape(batch_size, *((1,) * (len(x_shape) - 1))).to(t.device)
+    
+    def mlp_layers(self, layer_dims):
+        mlp_modules = []
+        for i, (d_in, d_out) in enumerate(zip(layer_dims[:-1], layer_dims[1:])):
+            mlp_modules.append(nn.Linear(d_in, d_out))
+            if i != len(layer_dims[:-1]) - 1:
+                mlp_modules.append(nn.Tanh())
+        return nn.Sequential(*mlp_modules)
 
-    def forward_diffusion_sample(self, x_0, t):
+    def forward_diffusion_sample(self, X, t):
         """ 
         Takes an image and a timestep as input and 
         returns the noisy version of it
         """
 
-        self.logger.info(f'X_0 Type: {type(x_0)} X_0 Items: {len(x_0)} X_0 Lenght: {x_0}')
+        #self.logger.info(f'X_0 Type: {type(x_0)} X_0 Items: {len(x_0)} X_0 Lenght: {x_0}')
 
-        user = x_0[self.USER_ID]
-        x_0 = self.get_rating_matrix(user) # x = Rating Matrix
-        x_0 = x_0.unsqueeze(2)
-
-        noise = torch.randn_like(x_0)
-        sqrt_alphas_cumprod_t = self.get_index_from_list(self.sqrt_alphas_cumprod, t, x_0.shape)
+        #x_0 = self.encoder(rating_matrix) # x = Rating Matrix
+        
+        noise = torch.randn_like(X)
+        sqrt_alphas_cumprod_t = self.get_index_from_list(self.sqrt_alphas_cumprod, t, X.shape)
         sqrt_one_minus_alphas_cumprod_t = self.get_index_from_list(
-            self.sqrt_one_minus_alphas_cumprod, t, x_0.shape
+            self.sqrt_one_minus_alphas_cumprod, t, X.shape
         )
         # mean + variance
-        return sqrt_alphas_cumprod_t.to(self.device) * x_0.to(self.device) \
+        return sqrt_alphas_cumprod_t.to(self.device) * X.to(self.device) \
         + sqrt_one_minus_alphas_cumprod_t.to(self.device) * noise.to(self.device), noise.to(self.device)
 
 
@@ -111,12 +138,83 @@ class Diffusion(GeneralRecommender):
             (row_indices, col_indices), self.history_item_value[user].flatten()
         )
         return rating_matrix
+    
+    
+    def diffusion(self, x, t):
 
-    def calculate_loss(self, x_0, t):
+        # Obtain constance values
+        betas_t = self.get_index_from_list(self.betas, t, x.shape)
+        sqrt_one_minus_alphas_cumprod_t = self.get_index_from_list(
+            self.sqrt_one_minus_alphas_cumprod, t, x.shape
+        )
+        sqrt_recip_alphas_t = self.get_index_from_list(self.sqrt_recip_alphas, t, x.shape)   
 
-        x_noisy, noise = self.forward_diffusion_sample(x_0, t)
-        noise_pred = self.model(x_noisy, t)
-        return F.l1_loss(noise, noise_pred)
+        # Get model output
+        time_emb = self.time_mlp(t)     
+        
+        model_output = x + time_emb
+
+        # Call model (current image - noise prediction)
+        model_mean = sqrt_recip_alphas_t * (
+            x - betas_t * model_output / sqrt_one_minus_alphas_cumprod_t
+        )
+        posterior_variance_t = self.get_index_from_list(self.posterior_variance, t, x.shape)
+
+        noise = torch.randn_like(x)
+
+        z = model_mean + torch.sqrt(posterior_variance_t) * noise 
+
+        return z, model_mean, posterior_variance_t
+    
+    
+    def forward(self, h, t=None):
+
+        if t is None:
+            t = torch.randint(0, self.n_steps, (h.shape[0],), device=self.device).long()
+
+        # Diffusion takes place of commented out lines below from MultiVAE architecture.
+        z, mu, logvar = self.diffusion(h, t)
+
+        #mu = h[:, : int(self.lat_dim / 2)]
+        #logvar = h[:, int(self.lat_dim / 2) :]
+
+        #z = self.reparameterize(mu, logvar)
+
+        z_decoded = self.decoder(z)
+
+        return z_decoded, z, mu, logvar
+
+    def calculate_loss(self, interaction, t):
+
+        user = interaction[self.USER_ID]
+        rating_matrix = self.get_rating_matrix(user)
+        h = F.normalize(rating_matrix)
+        h = self.encoder(rating_matrix)
+
+        self.update += 1
+        if self.total_anneal_steps > 0:
+            anneal = min(self.anneal_cap, 1.0 * self.update / self.total_anneal_steps)
+        else:
+            anneal = self.anneal_cap
+
+        z, _, mu, logvar = self.forward(h)
+
+        # KL loss
+        kl_loss = (
+            -0.5
+            * torch.mean(torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1))
+            * anneal
+        )
+
+        # CE loss
+        ce_loss = -(F.log_softmax(z, 1) * rating_matrix).sum(1).mean()
+
+        # Diffusion
+        x_noisy, noise = self.forward_diffusion_sample(h, t)
+        _, noise_pred, _, _ = self.forward(x_noisy, t)
+        diffusion_loss = F.l1_loss(noise, noise_pred)
+
+        return kl_loss + ce_loss + diffusion_loss
 
     def predict(self, interaction):
         """
@@ -126,47 +224,25 @@ class Diffusion(GeneralRecommender):
         """
 
         user = interaction[self.USER_ID]
-        item = interaction[self.ITEM_ID]
+        rating_matrix = self.get_rating_matrix(user) # x = Rating Matrix
 
-        x = self.get_rating_matrix(user) # x = Rating Matrix
-        x = x.unsqueeze(2)
+        h = F.normalize(rating_matrix)
+        #h = F.dropout(h, self.drop_out, training=self.training)
+        h = self.encoder(h)
 
-        t = torch.randint(0, self.n_steps, (self.batch_size,), device=self.device).long()
+        scores, _, _, _ = self.forward(h)
 
-        betas_t = self.get_index_from_list(self.betas, t, x.shape)
-        sqrt_one_minus_alphas_cumprod_t = self.get_index_from_list(
-            self.sqrt_one_minus_alphas_cumprod, t, x.shape
-        )
-        sqrt_recip_alphas_t = self.get_index_from_list(self.sqrt_recip_alphas, t, x.shape)
-        
-        # Call model (current image - noise prediction)
-        model_mean = sqrt_recip_alphas_t * (
-            x - betas_t * self.model(x, t) / sqrt_one_minus_alphas_cumprod_t
-        )
-        posterior_variance_t = self.get_index_from_list(self.posterior_variance, t, x.shape)
-
-        #output = torch.empty(self.batch_size)
-
-        #output[t==0] = model_mean[t==0]
-
-        #noise = torch.randn_like(x)
-        #output[t!=0] = model_mean[t!=0] + torch.sqrt(posterior_variance_t[t!=0]) * noise 
-
-        
-        #if t == 0:
-        #    return model_mean
-        #else:
-        noise = torch.randn_like(x)
-        return model_mean + torch.sqrt(posterior_variance_t) * noise 
+        return scores
 
     def full_sort_predict(self, interaction):
         user = interaction[self.USER_ID]
-
         rating_matrix = self.get_rating_matrix(user)
 
-        rating_matrix = rating_matrix.unsqueeze(2)
+        h = F.normalize(rating_matrix)
+        #h = F.dropout(h, self.drop_out, training=self.training)
+        h = self.encoder(h)
 
-        scores, _, _ = self.forward(rating_matrix)
+        scores, _, _, _ = self.forward(h)
 
         return scores.view(-1)
 
@@ -223,7 +299,7 @@ class SimpleUnet(nn.Module):
     """
     def __init__(self, config, dataset):
         super().__init__()
-        image_channels = dataset.item_num
+        image_channels = 1
         down_channels = (64, 128, 256, 512, 1024)
         up_channels = (1024, 512, 256, 128, 64)
         out_dim = 1 
@@ -254,7 +330,10 @@ class SimpleUnet(nn.Module):
         # Embedd time
         t = self.time_mlp(timestep)
         # Initial conv
+        print('PRe Conv0')
         x = self.conv0(x)
+        print(f'Conv0 Done {x.shape}')
+
         # Unet
         residual_inputs = []
         for down in self.downs:
@@ -265,6 +344,7 @@ class SimpleUnet(nn.Module):
             # Add residual x as additional channels
             x = torch.cat((x, residual_x), dim=1)           
             x = up(x, t)
+
         return self.output(x)
 
     
