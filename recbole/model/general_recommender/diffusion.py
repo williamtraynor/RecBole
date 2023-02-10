@@ -214,7 +214,7 @@ class Diffusion(GeneralRecommender):
         _, noise_pred, _, _ = self.forward(x_noisy, t)
         diffusion_loss = F.l1_loss(noise, noise_pred)
 
-        return kl_loss + ce_loss #+ diffusion_loss
+        return ce_loss + diffusion_loss # + kl_loss
 
     def predict(self, interaction):
         """
