@@ -42,7 +42,7 @@ class MultiVAE(GeneralRecommender):
 
         self.update = 0
 
-        self.encode_layer_dims = [self.n_items] + self.layers + [self.lat_dim]
+        self.encode_layer_dims = [self.n_items] + self.layers.astype(list) + [self.lat_dim]
         self.decode_layer_dims = [int(self.lat_dim / 2)] + self.encode_layer_dims[::-1][
             1:
         ]
