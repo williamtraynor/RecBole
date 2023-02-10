@@ -1,0 +1,58 @@
+dataset: music4all_1M
+model: MultiVAE
+epochs: 250
+state: ERROR
+#data_path: /Users/williamtraynor/Documents/seqreq_code/MSciProject/RecBoleFrk/dataset
+data_path: /Users/mengzaiqiao/Documents/William/WilliamRecBole/dataset
+
+#learning_rate: 0.001 # choice [0.01] #[0.01,0.005,0.001,0.0005,0.0001]
+#n_layers: 1 # choice [1] #[1,2,3,4]
+#reg_weight: 0.001 # choice [0.001] # [1e-05,1e-04,1e-03,1e-02]
+
+use_gpu: True
+
+seed: 2020
+reproducibility: True
+
+
+# Atomic File Format
+field_separator: "\t"
+seq_separator: " "
+
+# Common Features
+USER_ID_FIELD: user_id
+ITEM_ID_FIELD: track_id
+TIME_FIELD: timestamp
+seq_len: ~
+# Label for Point-wise DataLoader
+# NegSample Prefix for Pair-wise DataLoader
+NEG_PREFIX: neg_
+# Sequential Model Needed
+ITEM_LIST_LENGTH_FIELD: item_length
+LIST_SUFFIX: _list
+MAX_ITEM_LIST_LENGTH: 50
+POSITION_FIELD: position_id
+# Knowledge-based Model Needed
+HEAD_ENTITY_ID_FIELD: head_id
+TAIL_ENTITY_ID_FIELD: tail_id
+RELATION_ID_FIELD: relation_id
+ENTITY_ID_FIELD: entity_id
+
+# Selectively Loading
+load_col:
+    inter: [user_id, track_id, timestamp]
+    #user: [user_id, age, gender, occupation]
+    #item: [item_id, movie_title, release_year, class]
+    #link: [item_id, entity_id]
+    #kg: [head_id, relation_id, tail_id]
+
+unload_col: ~
+
+# Preprocessing
+alias_of_user_id: ~
+alias_of_item_id: ~
+alias_of_entity_id: ~
+alias_of_relation_id: ~
+preload_weight: ~
+normalize_field: ~
+normalize_all: True

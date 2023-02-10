@@ -1,0 +1,3 @@
+learning_rate choice [0.01,0.001,0.0001]
+mlp_hidden_size choice [[600], [1200,600], [2400,1200,600]]          # (list of int) The MLP hidden layer.
+latent_dimension choice [128, 512, 1024]           # (int) The latent dimension of auto-encoder.

@@ -99,6 +99,8 @@ class MultiVAE(GeneralRecommender):
 
         h = F.dropout(h, self.drop_out, training=self.training)
 
+        self.logger.info(f'H Shape {h.shape}')
+
         h = self.encoder(h)
 
         mu = h[:, : int(self.lat_dim / 2)]
