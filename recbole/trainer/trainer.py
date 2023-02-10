@@ -236,8 +236,7 @@ class Trainer(AbstractTrainer):
             train_data.sampler.set_epoch(epoch_idx)
 
         scaler = amp.GradScaler(enabled=self.enable_scaler)
-        for batch_idx, interaction in enumerate(iter_data):
-            t = torch.randint(0, self.n_steps, (len(interaction),), device=self.device).long()
+        for batch_idx, interaction in enumerate(iter_data):                
             interaction = interaction.to(self.device)
             self.optimizer.zero_grad()
             sync_loss = 0
@@ -247,6 +246,7 @@ class Trainer(AbstractTrainer):
 
             with torch.autocast(device_type=self.device.type, enabled=self.enable_amp):
                 if self.model.__class__.__name__ == 'Diffusion':
+                    t = torch.randint(0, self.n_steps, (len(interaction),), device=self.device).long()
                     losses = loss_func(interaction, t)
                 else:
                     losses = loss_func(interaction)
