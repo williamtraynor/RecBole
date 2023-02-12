@@ -101,7 +101,7 @@ class Diffusion(GeneralRecommender):
         returns the noisy version of it
         """
 
-        #self.logger.info(f'X_0 Type: {type(x_0)} X_0 Items: {len(x_0)} X_0 Lenght: {x_0}')
+        #self.logger.nfo(f'X_0 Type: {type(x_0)} X_0 Items: {len(x_0)} X_0 Lenght: {x_0}')
 
         #x_0 = self.encoder(rating_matrix) # x = Rating Matrix
         
@@ -209,12 +209,12 @@ class Diffusion(GeneralRecommender):
         # CE loss
         ce_loss = -(F.log_softmax(z, 1) * rating_matrix).sum(1).mean()
 
-        # Diffusion
+        # Diffusion Loss
         x_noisy, noise = self.forward_diffusion_sample(h, t)
         _, noise_pred, _, _ = self.forward(x_noisy, t)
         diffusion_loss = F.l1_loss(noise, noise_pred)
 
-        return ce_loss + diffusion_loss # + kl_loss
+        return ce_loss + kl_loss + diffusion_loss
 
     def predict(self, interaction):
         """

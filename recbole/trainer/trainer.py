@@ -245,7 +245,7 @@ class Trainer(AbstractTrainer):
                 sync_loss = self.sync_grad_loss()
 
             with torch.autocast(device_type=self.device.type, enabled=self.enable_amp):
-                if self.model.__class__.__name__ == 'Diffusion':
+                if self.model.__class__.__name__ == 'Diffusion' or self.model.__class__.__name__ == 'MacridDiffusion':
                     t = torch.randint(0, self.n_steps, (len(interaction),), device=self.device).long()
                     losses = loss_func(interaction, t)
                 else:
@@ -276,7 +276,7 @@ class Trainer(AbstractTrainer):
                     iter_data.set_postfix_str(
                         set_color("GPU RAM: " + get_gpu_usage(self.device), "yellow")
                     )
-        return total_loss
+        return total_loss/(batch_idx + 1)
 
     def _valid_epoch(self, valid_data, show_progress=False):
         r"""Valid the model with valid data
