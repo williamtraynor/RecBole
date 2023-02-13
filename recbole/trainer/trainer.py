@@ -245,11 +245,13 @@ class Trainer(AbstractTrainer):
                 sync_loss = self.sync_grad_loss()
 
             with torch.autocast(device_type=self.device.type, enabled=self.enable_amp):
-                if self.model.__class__.__name__ == 'Diffusion' or self.model.__class__.__name__ == 'MacridDiffusion':
-                    t = torch.randint(0, self.n_steps, (len(interaction),), device=self.device).long()
-                    losses = loss_func(interaction, t)
-                else:
-                    losses = loss_func(interaction)
+                #if self.model.__class__.__name__ == 'Diffusion' or self.model.__class__.__name__ == 'MacridDiffusion':
+                #    t = torch.randint(0, self.n_steps, (len(interaction),), device=self.device).long()
+                #    losses = loss_func(interaction, t)
+                #else:
+                #    losses = loss_func(interaction)
+                
+                losses = loss_func(interaction)
 
             if isinstance(losses, tuple):
                 loss = sum(losses)

@@ -163,48 +163,47 @@ class Diffusion(GeneralRecommender):
         noise = torch.randn_like(x)
 
         z = model_mean + torch.sqrt(posterior_variance_t) * noise 
-
+    
         return z, model_mean, posterior_variance_t
     
     
     def forward(self, h, t=None):
 
-        if t is None:
-            #t = torch.randint(0, self.n_steps, (h.shape[0],), device=self.device).long()
-            t = torch.full((h.shape[0],), self.n_steps-1, device=self.device).long() #([self.n_steps]) # n_steps = T
-        # Diffusion takes place of commented out lines below from MultiVAE architecture.
+        h = self.encoder(h)
+
+        #if t is None:
+            #t = torch.randint(0, self.n_steps, (h.shape[1],), device=self.device).long()
+            #t = torch.full((h.shape[0],), self.n_steps-1, device=self.device).long() #([self.n_steps]) # n_steps = T
+
         z, mu, logvar = self.diffusion(h, t)
-
-        #mu = h[:, : int(self.lat_dim / 2)]
-        #logvar = h[:, int(self.lat_dim / 2) :]
-
-        #z = self.reparameterize(mu, logvar)
 
         z_decoded = self.decoder(z)
 
         return z_decoded, z, mu, logvar
 
-    def calculate_loss(self, interaction, t):
+    def calculate_loss(self, interaction):
 
         user = interaction[self.USER_ID]
         rating_matrix = self.get_rating_matrix(user)
         h = F.normalize(rating_matrix)
-        h = self.encoder(rating_matrix)
 
-        self.update += 1
-        if self.total_anneal_steps > 0:
-            anneal = min(self.anneal_cap, 1.0 * self.update / self.total_anneal_steps)
-        else:
-            anneal = self.anneal_cap
+        t = torch.randint(0, self.n_steps, (h.shape[0],), device=self.device).long()
 
-        z, _, mu, logvar = self.forward(h)
+
+        #self.update += 1
+        #if self.total_anneal_steps > 0:
+        #    anneal = min(self.anneal_cap, 1.0 * self.update / self.total_anneal_steps)
+        #else:
+        #    anneal = self.anneal_cap
+
+        z, _, mu, logvar = self.forward(h, t)
 
         # KL loss
-        kl_loss = (
-            -0.5
-            * torch.mean(torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1))
-            * anneal
-        )
+        #kl_loss = (
+        #    -0.5
+        #    * torch.mean(torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1))
+        #    * anneal
+        #)
 
         # CE loss
         ce_loss = -(F.log_softmax(z, 1) * rating_matrix).sum(1).mean()
@@ -214,7 +213,7 @@ class Diffusion(GeneralRecommender):
         _, noise_pred, _, _ = self.forward(x_noisy, t)
         diffusion_loss = F.l1_loss(noise, noise_pred)
 
-        return ce_loss + kl_loss - diffusion_loss
+        return ce_loss + diffusion_loss # + kl_loss
 
     def predict(self, interaction):
         """
@@ -225,12 +224,13 @@ class Diffusion(GeneralRecommender):
 
         user = interaction[self.USER_ID]
         rating_matrix = self.get_rating_matrix(user) # x = Rating Matrix
-
+        
         h = F.normalize(rating_matrix)
         #h = F.dropout(h, self.drop_out, training=self.training)
-        h = self.encoder(h)
 
-        scores, _, _, _ = self.forward(h)
+        t = torch.full((h.shape[0],), self.n_steps-1, device=self.device).long()
+        
+        scores, _, _, _ = self.forward(h, t)
 
         return scores
 
@@ -240,9 +240,10 @@ class Diffusion(GeneralRecommender):
 
         h = F.normalize(rating_matrix)
         #h = F.dropout(h, self.drop_out, training=self.training)
-        h = self.encoder(h)
 
-        scores, _, _, _ = self.forward(h)
+        t = torch.full((h.shape[0],), self.n_steps-1, device=self.device).long()
+
+        scores, _, _, _ = self.forward(h, t)
 
         return scores.view(-1)
 
