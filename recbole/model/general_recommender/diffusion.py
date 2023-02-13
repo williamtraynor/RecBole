@@ -104,7 +104,8 @@ class Diffusion(GeneralRecommender):
         #self.logger.nfo(f'X_0 Type: {type(x_0)} X_0 Items: {len(x_0)} X_0 Lenght: {x_0}')
 
         #x_0 = self.encoder(rating_matrix) # x = Rating Matrix
-        
+        X = self.encoder(X)
+
         noise = torch.randn_like(X)
         sqrt_alphas_cumprod_t = self.get_index_from_list(self.sqrt_alphas_cumprod, t, X.shape)
         sqrt_one_minus_alphas_cumprod_t = self.get_index_from_list(
@@ -210,7 +211,7 @@ class Diffusion(GeneralRecommender):
 
         # Diffusion Loss
         x_noisy, noise = self.forward_diffusion_sample(h, t)
-        _, noise_pred, _, _ = self.forward(x_noisy, t)
+        noise_pred, _, _ = self.diffusion(x_noisy, t)
         diffusion_loss = F.mse_loss(noise, noise_pred)
 
         return ce_loss + diffusion_loss # + kl_loss
