@@ -171,7 +171,7 @@ class Diffusion(GeneralRecommender):
 
         if t is None:
             #t = torch.randint(0, self.n_steps, (h.shape[0],), device=self.device).long()
-            t = torch.Tensor([self.n_steps]) # n_steps = T
+            t = torch.full((h.shape[0],), self.n_steps-1, device=self.device).long() #([self.n_steps]) # n_steps = T
         # Diffusion takes place of commented out lines below from MultiVAE architecture.
         z, mu, logvar = self.diffusion(h, t)
 
