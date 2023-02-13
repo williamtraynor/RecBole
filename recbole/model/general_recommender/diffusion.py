@@ -52,7 +52,7 @@ class Diffusion(GeneralRecommender):
         self.anneal_cap = config["anneal_cap"]
         self.total_anneal_steps = config["total_anneal_steps"]
 
-        self.model = SimpleUnet(config, dataset)
+        #self.model = SimpleUnet(config, dataset)
 
         self.update = 0
 
@@ -170,8 +170,8 @@ class Diffusion(GeneralRecommender):
     def forward(self, h, t=None):
 
         if t is None:
-            t = torch.randint(0, self.n_steps, (h.shape[0],), device=self.device).long()
-
+            #t = torch.randint(0, self.n_steps, (h.shape[0],), device=self.device).long()
+            t = self.n_steps # n_steps = T
         # Diffusion takes place of commented out lines below from MultiVAE architecture.
         z, mu, logvar = self.diffusion(h, t)
 
@@ -214,7 +214,7 @@ class Diffusion(GeneralRecommender):
         _, noise_pred, _, _ = self.forward(x_noisy, t)
         diffusion_loss = F.l1_loss(noise, noise_pred)
 
-        return ce_loss + kl_loss + diffusion_loss
+        return ce_loss + kl_loss - diffusion_loss
 
     def predict(self, interaction):
         """
