@@ -211,7 +211,7 @@ class Diffusion(GeneralRecommender):
         # Diffusion Loss
         x_noisy, noise = self.forward_diffusion_sample(h, t)
         _, noise_pred, _, _ = self.forward(x_noisy, t)
-        diffusion_loss = F.l1_loss(noise, noise_pred)
+        diffusion_loss = F.mse_loss(noise, noise_pred)
 
         return ce_loss + diffusion_loss # + kl_loss
 
