@@ -193,7 +193,7 @@ class CVAE(GeneralRecommender):
             anneal = self.anneal_cap
 
         z, mu, logvar = self.forward(rating_matrix)
-        self.logger.info(f'Loss Function: Z {len(z)}, logvar {len(logvar)}')
+
         kl_loss = None
         for i in range(self.kfac):
             kl_ = -0.5 * torch.mean(torch.sum(1 + logvar[i] - logvar[i].exp(), dim=1))
