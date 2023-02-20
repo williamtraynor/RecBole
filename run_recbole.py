@@ -46,7 +46,7 @@ if __name__ == "__main__":
    
     if args.nproc == 1 and args.world_size <= 0:
         run_recbole(
-            model=args.model, dataset=args.dataset, config_file_list=config_file_list, config_dict=config_dict
+            model=args.model, dataset=args.dataset, config_file_list=config_file_list
         )
     else:
         if args.world_size == -1:
