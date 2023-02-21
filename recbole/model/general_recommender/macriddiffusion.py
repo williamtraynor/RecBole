@@ -274,7 +274,7 @@ class MacridDiffusion(GeneralRecommender):
         if self.regs[0] != 0 or self.regs[1] != 0:
             return ce_loss + kl_loss * anneal + self.reg_loss()
 
-        return ce_loss + diffusion_loss # + kl_loss * anneal 
+        return ce_loss + diffusion_loss + kl_loss * anneal 
 
     def reg_loss(self):
         r"""Calculate the L2 normalization loss of model parameters.
