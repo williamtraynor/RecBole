@@ -79,9 +79,9 @@ class MacridDiffusion(GeneralRecommender):
 
         self.encoder = self.mlp_layers(self.encode_layer_dims)
 
-        #self.item_embedding = nn.Embedding(self.n_items, self.embedding_size)
-        pretrained_item_emb = dataset.get_preload_weight('iid')
-        self.item_embedding = nn.Embedding.from_pretrained(torch.from_numpy(pretrained_item_emb), freeze=False).type(torch.FloatTensor)
+        self.item_embedding = nn.Embedding(self.n_items, self.embedding_size)
+        #pretrained_item_emb = dataset.get_preload_weight('iid')
+        #self.item_embedding = nn.Embedding.from_pretrained(torch.from_numpy(pretrained_item_emb), freeze=False).type(torch.FloatTensor)
         
         
         self.k_embedding = nn.Embedding(self.kfac, self.embedding_size)
