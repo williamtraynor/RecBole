@@ -65,6 +65,10 @@ class Diffusion(GeneralRecommender):
             1:
         ]
 
+        #pretrained_item_emb = dataset.get_preload_weight('iid')
+        #self.item_embeddings = nn.Embedding.from_pretrained(torch.from_numpy(pretrained_item_emb), freeze=False).type(torch.FloatTensor)
+        
+
         self.encoder = self.mlp_layers(self.encode_layer_dims)
         self.decoder = self.mlp_layers(self.decode_layer_dims)
 
@@ -190,21 +194,20 @@ class Diffusion(GeneralRecommender):
 
         t = torch.randint(0, self.n_steps, (h.shape[0],), device=self.device).long()
 
-
-        #self.update += 1
-        #if self.total_anneal_steps > 0:
-        #    anneal = min(self.anneal_cap, 1.0 * self.update / self.total_anneal_steps)
-        #else:
-        #    anneal = self.anneal_cap
+        self.update += 1
+        if self.total_anneal_steps > 0:
+            anneal = min(self.anneal_cap, 1.0 * self.update / self.total_anneal_steps)
+        else:
+            anneal = self.anneal_cap
 
         z, _, mu, logvar = self.forward(h, t)
 
         # KL loss
-        #kl_loss = (
-        #    -0.5
-        #    * torch.mean(torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1))
-        #    * anneal
-        #)
+        kl_loss = (
+            -0.5
+            * torch.mean(torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1))
+            * anneal
+        )
 
         # CE loss
         ce_loss = -(F.log_softmax(z, 1) * rating_matrix).sum(1).mean()
@@ -214,7 +217,7 @@ class Diffusion(GeneralRecommender):
         noise_pred, _, _ = self.diffusion(x_noisy, t)
         diffusion_loss = F.mse_loss(noise, noise_pred)
 
-        return ce_loss + diffusion_loss # + kl_loss
+        return ce_loss + diffusion_loss + kl_loss
 
     def predict(self, interaction):
         """
