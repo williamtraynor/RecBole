@@ -79,7 +79,11 @@ class MacridDiffusion(GeneralRecommender):
 
         self.encoder = self.mlp_layers(self.encode_layer_dims)
 
-        self.item_embedding = nn.Embedding(self.n_items, self.embedding_size)
+        #self.item_embedding = nn.Embedding(self.n_items, self.embedding_size)
+        pretrained_item_emb = dataset.get_preload_weight('iid')
+        self.item_embedding = nn.Embedding.from_pretrained(torch.from_numpy(pretrained_item_emb), freeze=False).type(torch.FloatTensor)
+        
+        
         self.k_embedding = nn.Embedding(self.kfac, self.embedding_size)
 
         self.l2_loss = EmbLoss()
@@ -270,7 +274,7 @@ class MacridDiffusion(GeneralRecommender):
         if self.regs[0] != 0 or self.regs[1] != 0:
             return ce_loss + kl_loss * anneal + self.reg_loss()
 
-        return ce_loss + kl_loss * anneal + diffusion_loss
+        return ce_loss + diffusion_loss # + kl_loss * anneal 
 
     def reg_loss(self):
         r"""Calculate the L2 normalization loss of model parameters.

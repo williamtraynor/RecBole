@@ -152,8 +152,8 @@ class MacridVAE(GeneralRecommender):
         return logits, mulist, logvarlist
 
     def calculate_loss(self, interaction):
-        user = interaction[self.USER_ID]
 
+        user = interaction[self.USER_ID]
         rating_matrix = self.get_rating_matrix(user)
 
         self.update += 1
@@ -163,6 +163,7 @@ class MacridVAE(GeneralRecommender):
             anneal = self.anneal_cap
 
         z, mu, logvar = self.forward(rating_matrix)
+        
         kl_loss = None
         for i in range(self.kfac):
             kl_ = -0.5 * torch.mean(torch.sum(1 + logvar[i] - logvar[i].exp(), dim=1))
