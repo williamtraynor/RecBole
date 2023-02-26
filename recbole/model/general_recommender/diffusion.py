@@ -191,6 +191,7 @@ class Diffusion(GeneralRecommender):
         user = interaction[self.USER_ID]
         rating_matrix = self.get_rating_matrix(user)
         h = F.normalize(rating_matrix)
+        h = F.dropout(h, self.drop_out, training=self.training)
 
         t = torch.randint(0, self.n_steps, (h.shape[0],), device=self.device).long()
 
@@ -230,7 +231,7 @@ class Diffusion(GeneralRecommender):
         rating_matrix = self.get_rating_matrix(user) # x = Rating Matrix
         
         h = F.normalize(rating_matrix)
-        #h = F.dropout(h, self.drop_out, training=self.training)
+        h = F.dropout(h, self.drop_out, training=self.training)
 
         t = torch.full((h.shape[0],), self.n_steps-1, device=self.device).long()
         
@@ -243,7 +244,7 @@ class Diffusion(GeneralRecommender):
         rating_matrix = self.get_rating_matrix(user)
 
         h = F.normalize(rating_matrix)
-        #h = F.dropout(h, self.drop_out, training=self.training)
+        h = F.dropout(h, self.drop_out, training=self.training)
 
         t = torch.full((h.shape[0],), self.n_steps-1, device=self.device).long()
 
