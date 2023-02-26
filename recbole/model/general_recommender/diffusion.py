@@ -35,6 +35,7 @@ class Diffusion(GeneralRecommender):
         self.batch_size = config['train_batch_size']
         self.layers = config["mlp_hidden_size"]
         self.lat_dim = config["latent_dimension"]
+        self.drop_out = config["dropout_prob"]
         #self.network = network.to(device)
         
         # Pre-calculate different terms for closed form
