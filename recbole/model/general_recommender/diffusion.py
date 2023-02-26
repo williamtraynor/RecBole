@@ -38,6 +38,7 @@ class Diffusion(GeneralRecommender):
         self.drop_out = config["dropout_prob"]
         #self.network = network.to(device)
         
+        
         # Pre-calculate different terms for closed form
 
         self.betas = torch.linspace(config['min_beta'], config['max_beta'], config['n_steps']).to(

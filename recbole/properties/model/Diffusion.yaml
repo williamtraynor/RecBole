@@ -6,3 +6,4 @@ latent_dimension: 128
 dropout_cap: 0.5       # (int) The latent dimension of auto-encoder.
 anneal_cap: 0.2                 # (float) The hyper parameter of the weight of KL loss. 
 total_anneal_steps: 200000      # (int) The maximum steps of anneal update.
+
