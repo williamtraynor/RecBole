@@ -90,7 +90,7 @@ class ClipMacridDiffusion(GeneralRecommender):
         # parameters initialization
 
         # Time embedding
-        self.time_emb_dim = self.embedding_size
+        self.time_emb_dim = self.embedding_size + self.mm_representation.weight.shape[-1]
         self.time_mlp = nn.Sequential(
                 SinusoidalPositionEmbeddings(self.time_emb_dim),
                 nn.Linear(self.time_emb_dim, self.time_emb_dim),
