@@ -90,7 +90,7 @@ class ClipMacridDiffusion(GeneralRecommender):
         # parameters initialization
 
         # Time embedding
-        self.time_emb_dim = self.embedding_size + self.mm_representation.weight.shape[-1]
+        self.time_emb_dim = self.embedding_size
         self.time_mlp = nn.Sequential(
                 SinusoidalPositionEmbeddings(self.time_emb_dim),
                 nn.Linear(self.time_emb_dim, self.time_emb_dim),
@@ -240,10 +240,11 @@ class ClipMacridDiffusion(GeneralRecommender):
         else:
             return mu
         
-    def diffusion(self, x, t,):
+    def diffusion(self, x, t, conditioning=False):
 
         # Account for conditioning vector (MM Information)
-        #x = torch.concat((x, conditioning), dim=1)
+        if conditioning:
+            x = torch.concat((x, conditioning), dim=1)
 
         # Obtain constance values
         betas_t = self.get_index_from_list(self.betas, t, x.shape)
@@ -254,6 +255,8 @@ class ClipMacridDiffusion(GeneralRecommender):
 
         # Get model output
         time_emb = self.time_mlp(t)     
+        if conditioning:
+            torch.concat(time_emb, torch.zeros_like(conditioning))
         
         model_output = x + time_emb
 
@@ -297,10 +300,10 @@ class ClipMacridDiffusion(GeneralRecommender):
             x_k = rating_matrix * cates_k
             h = self.encoder(x_k)
 
-            h_ = torch.concat((h, conditioning), dim=1)
+            #h_ = torch.concat((h, conditioning), dim=1)
 
             # Diffusion takes place of commented out lines below from MultiVAE architecture.
-            z, mu, logvar = self.diffusion(h_, t)
+            z, mu, logvar = self.diffusion(h, t, conditioning)
 
             noise_pred, condition = z[:, :items.shape[1]], z[:, items.shape[1]:]
 
