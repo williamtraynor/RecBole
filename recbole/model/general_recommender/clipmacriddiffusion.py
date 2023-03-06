@@ -243,7 +243,7 @@ class ClipMacridDiffusion(GeneralRecommender):
     def diffusion(self, x, t, conditioning=False):
 
         # Account for conditioning vector (MM Information)
-        if conditioning:
+        if type(conditioning)==torch.Tensor:
             x = torch.concat((x, conditioning), dim=1)
 
         # Obtain constance values
@@ -255,7 +255,7 @@ class ClipMacridDiffusion(GeneralRecommender):
 
         # Get model output
         time_emb = self.time_mlp(t)     
-        if conditioning:
+        if type(conditioning)==torch.Tensor:
             torch.concat(time_emb, torch.zeros_like(conditioning))
         
         model_output = x + time_emb
