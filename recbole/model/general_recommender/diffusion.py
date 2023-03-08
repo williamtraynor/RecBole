@@ -203,14 +203,14 @@ class Diffusion(GeneralRecommender):
         else:
             anneal = self.anneal_cap
 
-        z, _, mu, logvar = self.forward(h, t)
+        z, _, _, _ = self.forward(h, t)
 
-        # KL loss
-        kl_loss = (
-            -0.5
-            * torch.mean(torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1))
-            * anneal
-        )
+        ## KL loss
+        #kl_loss = (
+        #    -0.5
+        #    * torch.mean(torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1))
+        #    * anneal
+        #)
 
         # CE loss
         ce_loss = -(F.log_softmax(z, 1) * rating_matrix).sum(1).mean()
@@ -220,7 +220,7 @@ class Diffusion(GeneralRecommender):
         noise_pred, _, _ = self.diffusion(x_noisy, t)
         diffusion_loss = F.mse_loss(noise, noise_pred)
 
-        return ce_loss + diffusion_loss + kl_loss
+        return ce_loss + diffusion_loss * anneal #+ kl_loss
 
     def predict(self, interaction):
         """
