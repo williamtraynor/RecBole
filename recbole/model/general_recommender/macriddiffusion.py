@@ -395,7 +395,7 @@ class MacridDiffusion(GeneralRecommender):
         # t = T for evaluation
         t = torch.full((h.shape[0],), self.n_steps-1, device=self.device).long()
 
-        scores, _, _, _ = self.forward(h, t)
+        scores, _, _ = self.forward(h, t)
 
         return scores[[torch.arange(len(item)).to(self.device), item]]
 
@@ -407,7 +407,7 @@ class MacridDiffusion(GeneralRecommender):
         # t = T for evaluation
         t = torch.full((h.shape[0],), self.n_steps-1, device=self.device).long()
 
-        scores, _, _, _ = self.forward(h, t)
+        scores, _, _ = self.forward(h, t)
 
         return scores.view(-1)
     
