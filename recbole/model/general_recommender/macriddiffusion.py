@@ -57,8 +57,8 @@ class MacridDiffusion(GeneralRecommender):
 
         # Pre-calculate different terms for closed form
 
-        self.betas = torch.linspace(config['min_beta'], config['max_beta'], config['n_steps']).to(
-            self.device)  # Number of steps is typically in the order of thousands
+        self.betas = torch.linspace(config['min_beta'], config['max_beta'], config['n_steps']).to(self.device)  # Number of steps is typically in the order of thousands
+        self.b = config["input_scale"]        
         self.alphas = 1 - self.betas
         self.alphas_cumprod = torch.cumprod(self.alphas, axis=0)
         self.alphas_cumprod_prev = F.pad(self.alphas_cumprod[:-1], (1, 0), value=1.0)
@@ -161,8 +161,8 @@ class MacridDiffusion(GeneralRecommender):
             self.sqrt_one_minus_alphas_cumprod, t, X.shape
         )
         # mean + variance
-        return sqrt_alphas_cumprod_t.to(self.device) * X.to(self.device) \
-        + sqrt_one_minus_alphas_cumprod_t.to(self.device) * noise.to(self.device), noise.to(self.device)
+        return sqrt_alphas_cumprod_t.to(self.device) * X.to(self.device) * self.b \
+        + sqrt_one_minus_alphas_cumprod_t.to(self.device) * noise.to(self.device), noise.to(self.device) #self.b is our input scaling factor
         
         '''
         cores = F.normalize(self.k_embedding.weight, dim=1)
@@ -274,9 +274,10 @@ class MacridDiffusion(GeneralRecommender):
 
         noise = torch.randn_like(x)
 
-        z = model_mean + torch.sqrt(posterior_variance_t) * noise 
-
-        return z, model_mean, posterior_variance_t
+        if t == 0:
+            return model_mean
+        else:
+            return model_mean + torch.sqrt(posterior_variance_t) * noise 
 
     def forward(self, rating_matrix, t):
 
@@ -296,21 +297,20 @@ class MacridDiffusion(GeneralRecommender):
             cates = self.training * cates_sample + (1 - self.training) * cates_mode
 
         probs = None
-        mulist = []
-        logvarlist = []
         noisepredlist = []
+        noiselist = []
         for k in range(self.kfac):
             cates_k = cates[:, k].reshape(1, -1)
             # encoder
             x_k = rating_matrix * cates_k
-            h = self.encoder(x_k)
+            z = self.encoder(x_k)
 
+            z_noisy, noise = self.forward_diffusion_sample(z, t)
             # Diffusion takes place of commented out lines below from MultiVAE architecture.
-            z, mu, logvar = self.diffusion(h, t)
+            noisepred = self.diffusion(z_noisy, t)
 
-            noisepredlist += z,
-            mulist += mu, #.append(mu)
-            logvarlist += logvar, #.append(logvar)
+            noiselist += noise
+            noisepredlist += noisepred,
 
             # decoder
             z_k = F.normalize(z, dim=1)
@@ -321,7 +321,7 @@ class MacridDiffusion(GeneralRecommender):
 
         logits = torch.log(probs)
 
-        return logits, noisepredlist, mulist, logvarlist
+        return logits, noiselist, noisepredlist
 
     def calculate_loss(self, interaction):
         user = interaction[self.USER_ID]
@@ -339,7 +339,7 @@ class MacridDiffusion(GeneralRecommender):
             anneal = self.anneal_cap
 
         # Forward process with h and random t
-        z, noise, mu, logvar = self.forward(rating_matrix, t)
+        z, noiselist, noisepredlist = self.forward(rating_matrix, t)
 
         # KL Loss
         #kl_loss = None
@@ -351,16 +351,21 @@ class MacridDiffusion(GeneralRecommender):
         ce_loss = -(F.log_softmax(z, 1) * rating_matrix).sum(1).mean()
 
         # Diffusion Loss
-        x_noisy, noise = self.forward_diffusion_sample(self.encoder(h), t)
+        #x_noisy, noise = self.forward_diffusion_sample(self.encoder(h), t)
         ##x_noisylist, noiselist = self.forward_diffusion_sample(rating_matrix, t)
         #diffusion_loss = 0
         #for i in range(self.kfac):
-        noise_pred, _, _ = self.diffusion(x_noisy, t)
-        diffusion_loss = F.mse_loss(noise, noise_pred)
+        #noise_pred, _, _ = self.diffusion(x_noisy, t)
+        #diffusion_loss = F.mse_loss(noise, noise_pred)
             ##noise_pred, _, _ = self.diffusion(x_noisylist[i], t)
             ##dl_ = F.mse_loss(noiselist[i], noise_pred)
         #diffusion_loss = dl_ if (diffusion_loss is None) else (diffusion_loss + dl_)
         
+        diffusion_loss = 0
+        for i in range(self.kfac):
+            dl_ = F.mse_loss(noiselist[i], noisepredlist[i])
+            diffusion_loss = dl_ if (diffusion_loss is None) else (diffusion_loss + dl_)
+
         #if self.regs[0] != 0 or self.regs[1] != 0:
         #    return ce_loss + kl_loss * anneal + self.reg_loss()
 
