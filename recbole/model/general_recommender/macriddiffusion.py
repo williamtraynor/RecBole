@@ -274,10 +274,7 @@ class MacridDiffusion(GeneralRecommender):
 
         noise = torch.randn_like(x)
 
-        if t == 0:
-            return model_mean
-        else:
-            return model_mean + torch.sqrt(posterior_variance_t) * noise 
+        return model_mean + torch.sqrt(posterior_variance_t) * noise 
 
     def forward(self, rating_matrix, t):
 
