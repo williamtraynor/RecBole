@@ -306,7 +306,7 @@ class MacridDiffusion(GeneralRecommender):
             # Diffusion takes place of commented out lines below from MultiVAE architecture.
             noisepred = self.diffusion(z_noisy, t)
 
-            noiselist += noise
+            noiselist += noise,
             noisepredlist += noisepred,
 
             # decoder
