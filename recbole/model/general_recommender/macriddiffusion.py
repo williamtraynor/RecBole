@@ -271,9 +271,8 @@ class MacridDiffusion(GeneralRecommender):
         model_output = x + time_emb 
 
         if c is not None:
-            model_output = model_output + c
-            #model_output = torch.cat([x + time_emb, c], dim=1)
-            #x = torch.cat([x, torch.zeros_like(c)], dim=1)
+            model_output = torch.cat([x + time_emb, c], dim=1)
+            x = torch.cat([x, torch.zeros_like(c)], dim=1)
 
         # Call model (current image - noise prediction)
         model_mean = sqrt_recip_alphas_t * (
@@ -283,14 +282,14 @@ class MacridDiffusion(GeneralRecommender):
 
         noise = torch.randn_like(x)
 
-        #if c is not None:
-        #    # remove conditioning information
-        #    model_mean = model_mean[:, :-c.shape[-1]]
-        #    noise = torch.randn_like(x[:, :-c.shape[-1]])
+        if c is not None:
+            # remove conditioning information
+            model_mean = model_mean[:, :-c.shape[-1]]
+            noise = torch.randn_like(x[:, :-c.shape[-1]])
 
         return model_mean + torch.sqrt(posterior_variance_t) * noise 
 
-    def forward(self, rating_matrix, t, c):
+    def forward(self, rating_matrix, t, c=None):
 
         cores = F.normalize(self.k_embedding.weight, dim=1)
         items = F.normalize(self.item_embedding.weight, dim=1)
@@ -416,7 +415,6 @@ class MacridDiffusion(GeneralRecommender):
 
         h = self.get_rating_matrix(user)
         c = self.user_conditions[user]
-
 
         # t = T for evaluation
         t = torch.full((h.shape[0],), self.n_steps-1, device=self.device).long()
