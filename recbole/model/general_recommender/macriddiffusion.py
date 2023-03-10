@@ -82,7 +82,11 @@ class MacridDiffusion(GeneralRecommender):
         self.item_embedding = nn.Embedding(self.n_items, self.embedding_size)
         pretrained_item_emb = dataset.get_preload_weight('iid')
         self.conditions = nn.Embedding.from_pretrained(torch.from_numpy(pretrained_item_emb), freeze=False).type(torch.FloatTensor)
-        
+        self.conditions.weight.requires_grad = False
+        self.user_conditions = F.normalize(torch.amax(self.conditions.weight[self.history_item_id], dim=1), dim=1) # max pool item embeddings for each user
+        #self.user_conditions = torch.Tensor([(user_inters * self.conditions.weights.T).detach().numpy() for user_inters in self.history_item_id]).type(torch.float32)
+        #self.max_user_conditions = torch.amax(self.user_conditions, axis=1) # other option is torch.mean(user_mm_info, dim=2)
+
         
         self.k_embedding = nn.Embedding(self.kfac, self.embedding_size)
 
@@ -286,17 +290,13 @@ class MacridDiffusion(GeneralRecommender):
 
         return model_mean + torch.sqrt(posterior_variance_t) * noise 
 
-    def forward(self, rating_matrix, t):
+    def forward(self, rating_matrix, t, c):
 
         cores = F.normalize(self.k_embedding.weight, dim=1)
         items = F.normalize(self.item_embedding.weight, dim=1)
-        conditions = F.normalize(self.conditions.weight, dim=1)
 
         rating_matrix = F.normalize(rating_matrix)
         rating_matrix = F.dropout(rating_matrix, self.drop_out, training=self.training)
-
-        user_conditions = torch.Tensor([(rating * conditions.T).detach().numpy() for rating in rating_matrix]).type(torch.float32)
-        user_conditions = torch.amax(user_conditions, axis=2) # other option is torch.mean(user_mm_info, dim=2)
 
         cates_logits = torch.matmul(items, cores.transpose(0, 1)) / self.tau
 
@@ -318,7 +318,7 @@ class MacridDiffusion(GeneralRecommender):
 
             z_noisy, noise = self.forward_diffusion_sample(z, t)
             # Diffusion takes place of commented out lines below from MultiVAE architecture.
-            noisepred = self.diffusion(z_noisy, t, user_conditions)
+            noisepred = self.diffusion(z_noisy, t, c)
 
             noiselist += noise,
             noisepredlist += noisepred,
@@ -402,11 +402,12 @@ class MacridDiffusion(GeneralRecommender):
         item = interaction[self.ITEM_ID]
 
         h = self.get_rating_matrix(user)
+        c = self.user_conditions[user]
 
         # t = T for evaluation
         t = torch.full((h.shape[0],), self.n_steps-1, device=self.device).long()
 
-        scores, _, _ = self.forward(h, t)
+        scores, _, _ = self.forward(h, t, c)
 
         return scores[[torch.arange(len(item)).to(self.device), item]]
 
@@ -414,11 +415,13 @@ class MacridDiffusion(GeneralRecommender):
         user = interaction[self.USER_ID]
 
         h = self.get_rating_matrix(user)
+        c = self.user_conditions[user]
+
 
         # t = T for evaluation
         t = torch.full((h.shape[0],), self.n_steps-1, device=self.device).long()
 
-        scores, _, _ = self.forward(h, t)
+        scores, _, _ = self.forward(h, t, c)
 
         return scores.view(-1)
     
