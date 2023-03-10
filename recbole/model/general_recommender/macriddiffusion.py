@@ -337,7 +337,7 @@ class MacridDiffusion(GeneralRecommender):
     def calculate_loss(self, interaction):
         user = interaction[self.USER_ID]
         rating_matrix = self.get_rating_matrix(user)
-        h = F.normalize(rating_matrix)
+        c = self.user_conditions[user]
 
         # t is uniform random variable from {1,2,...,n_steps}
         t = torch.randint(0, self.n_steps, (rating_matrix.shape[0],), device=self.device).long()
@@ -350,7 +350,7 @@ class MacridDiffusion(GeneralRecommender):
             anneal = self.anneal_cap
 
         # Forward process with h and random t
-        z, noiselist, noisepredlist = self.forward(rating_matrix, t)
+        z, noiselist, noisepredlist = self.forward(rating_matrix, t, c)
 
         # KL Loss
         #kl_loss = None
