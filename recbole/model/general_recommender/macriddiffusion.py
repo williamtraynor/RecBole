@@ -81,7 +81,7 @@ class MacridDiffusion(GeneralRecommender):
 
         self.item_embedding = nn.Embedding(self.n_items, self.embedding_size)
         pretrained_item_emb = dataset.get_preload_weight('iid')
-        self.mm_representation = nn.Embedding.from_pretrained(torch.from_numpy(pretrained_item_emb), freeze=False).type(torch.FloatTensor)
+        self.conditions = nn.Embedding.from_pretrained(torch.from_numpy(pretrained_item_emb), freeze=False).type(torch.FloatTensor)
         
         
         self.k_embedding = nn.Embedding(self.kfac, self.embedding_size)
@@ -252,7 +252,7 @@ class MacridDiffusion(GeneralRecommender):
         else:
             return mu
         
-    def diffusion(self, x, t):
+    def diffusion(self, x, t, c=None):
 
         # Obtain constance values
         betas_t = self.get_index_from_list(self.betas, t, x.shape)
@@ -262,9 +262,13 @@ class MacridDiffusion(GeneralRecommender):
         sqrt_recip_alphas_t = self.get_index_from_list(self.sqrt_recip_alphas, t, x.shape)   
 
         # Get model output
-        time_emb = self.time_mlp(t)     
-        
+        time_emb = self.time_mlp(t)  
+
         model_output = x + time_emb
+
+        if c is not None:
+            model_output = torch.cat([x + time_emb, c], dim=1)
+            x = torch.cat([x, torch.zeros_like(c)], dim=1)
 
         # Call model (current image - noise prediction)
         model_mean = sqrt_recip_alphas_t * (
@@ -274,15 +278,24 @@ class MacridDiffusion(GeneralRecommender):
 
         noise = torch.randn_like(x)
 
+        if c is not None:
+            # remove conditioning information
+            model_mean = model_mean[:, :-c.shape[-1]]
+            noise = torch.randn_like(x[:, :-c.shape[-1]])
+
         return model_mean + torch.sqrt(posterior_variance_t) * noise 
 
     def forward(self, rating_matrix, t):
 
         cores = F.normalize(self.k_embedding.weight, dim=1)
         items = F.normalize(self.item_embedding.weight, dim=1)
+        conditions = F.normalize(self.conditions.weight, dim=1)
 
         rating_matrix = F.normalize(rating_matrix)
         rating_matrix = F.dropout(rating_matrix, self.drop_out, training=self.training)
+
+        user_conditions = torch.Tensor([(rating * conditions.T).detach().numpy() for rating in rating_matrix]).type(torch.float32)
+        user_conditions = torch.amax(user_conditions, axis=2) # other option is torch.mean(user_mm_info, dim=2)
 
         cates_logits = torch.matmul(items, cores.transpose(0, 1)) / self.tau
 
@@ -304,7 +317,7 @@ class MacridDiffusion(GeneralRecommender):
 
             z_noisy, noise = self.forward_diffusion_sample(z, t)
             # Diffusion takes place of commented out lines below from MultiVAE architecture.
-            noisepred = self.diffusion(z_noisy, t)
+            noisepred = self.diffusion(z_noisy, t, user_conditions)
 
             noiselist += noise,
             noisepredlist += noisepred,
