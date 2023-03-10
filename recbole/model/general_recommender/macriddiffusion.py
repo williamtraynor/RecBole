@@ -264,11 +264,12 @@ class MacridDiffusion(GeneralRecommender):
         # Get model output
         time_emb = self.time_mlp(t)  
 
-        model_output = x + time_emb
+        model_output = x + time_emb 
 
         if c is not None:
-            model_output = torch.cat([x + time_emb, c], dim=1)
-            x = torch.cat([x, torch.zeros_like(c)], dim=1)
+            model_output = model_output + c
+            #model_output = torch.cat([x + time_emb, c], dim=1)
+            #x = torch.cat([x, torch.zeros_like(c)], dim=1)
 
         # Call model (current image - noise prediction)
         model_mean = sqrt_recip_alphas_t * (
@@ -278,10 +279,10 @@ class MacridDiffusion(GeneralRecommender):
 
         noise = torch.randn_like(x)
 
-        if c is not None:
-            # remove conditioning information
-            model_mean = model_mean[:, :-c.shape[-1]]
-            noise = torch.randn_like(x[:, :-c.shape[-1]])
+        #if c is not None:
+        #    # remove conditioning information
+        #    model_mean = model_mean[:, :-c.shape[-1]]
+        #    noise = torch.randn_like(x[:, :-c.shape[-1]])
 
         return model_mean + torch.sqrt(posterior_variance_t) * noise 
 
