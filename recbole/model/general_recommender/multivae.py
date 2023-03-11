@@ -106,7 +106,7 @@ class MultiVAE(GeneralRecommender):
         self.logger.info(f'H Shape {h.shape}')
 
         if c is not None:
-            h = torch.cat(h, c)
+            h = torch.cat((h, c), dim=1)
 
         h = self.encoder(h)
 
@@ -116,7 +116,7 @@ class MultiVAE(GeneralRecommender):
         z = self.reparameterize(mu, logvar)
 
         if c is not None:
-            z = torch.cat(z, c)
+            z = torch.cat((z, c), dim=1)
 
         z = self.decoder(z)
         return z, mu, logvar
