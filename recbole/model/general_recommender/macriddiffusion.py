@@ -54,6 +54,7 @@ class MacridDiffusion(GeneralRecommender):
         self.batch_size = config['train_batch_size']
         self.layers = config["mlp_hidden_size"]
         self.lat_dim = config["latent_dimension"]
+        self.diffusion_layers = config["diffusion_layers"]
 
         # Pre-calculate different terms for closed form
 
@@ -78,6 +79,10 @@ class MacridDiffusion(GeneralRecommender):
         )
 
         self.encoder = self.mlp_layers(self.encode_layer_dims)
+
+        self.diffencoder = self.mlp_layers([128, 64, 16])
+        self.diffdecoder = self.mlp_layers([16, 64, 128])
+
 
         self.item_embedding = nn.Embedding(self.n_items, self.embedding_size)
         pretrained_item_emb = dataset.get_preload_weight('iid')
@@ -258,6 +263,14 @@ class MacridDiffusion(GeneralRecommender):
         
     def diffusion(self, x, t, c=None):
 
+        time_emb = self.time_mlp(t)  
+
+        x = x + time_emb
+
+        z = self.diffencoder(x)
+
+        return self.diffdecoder(z)
+
         # Obtain constance values
         betas_t = self.get_index_from_list(self.betas, t, x.shape)
         sqrt_one_minus_alphas_cumprod_t = self.get_index_from_list(
@@ -323,7 +336,7 @@ class MacridDiffusion(GeneralRecommender):
             noisepredlist += noisepred,
 
             # decoder
-            z_k = F.normalize(z, dim=1)
+            z_k = F.normalize((z_noisy - noisepred), dim=1)
             logits_k = torch.matmul(z_k, items.transpose(0, 1)) / self.tau
             probs_k = torch.exp(logits_k)
             probs_k = probs_k * cates_k
@@ -379,7 +392,7 @@ class MacridDiffusion(GeneralRecommender):
         #if self.regs[0] != 0 or self.regs[1] != 0:
         #    return ce_loss + kl_loss * anneal + self.reg_loss()
 
-        return ce_loss + diffusion_loss * anneal #+ kl_loss * anneal 
+        return ce_loss + diffusion_loss #+ kl_loss * anneal 
 
     def reg_loss(self):
         r"""Calculate the L2 normalization loss of model parameters.
