@@ -42,10 +42,11 @@ class MultiVAE(GeneralRecommender):
 
         self.update = 0
 
-        self.encode_layer_dims = [self.n_items + 128] + list(self.layers) + [self.lat_dim]
+        self.encode_layer_dims = [self.n_items] + list(self.layers) + [self.lat_dim]
         self.decode_layer_dims = [int(self.lat_dim / 2) + 128] + self.encode_layer_dims[::-1][
             1:
         ]
+        self.encode_layer_dims[0] += 128
 
         pretrained_item_emb = dataset.get_preload_weight('iid')
         self.conditions = nn.Embedding.from_pretrained(torch.from_numpy(pretrained_item_emb), freeze=False).type(torch.FloatTensor)
