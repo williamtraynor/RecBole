@@ -265,7 +265,8 @@ class MacridDiffusion(GeneralRecommender):
 
         time_emb = self.time_mlp(t)  
 
-        x = x + time_emb
+        if c is not None:
+            x = x + time_emb
 
         z = self.diffencoder(x)
 
