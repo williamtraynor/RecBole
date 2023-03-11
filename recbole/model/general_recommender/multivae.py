@@ -104,8 +104,6 @@ class MultiVAE(GeneralRecommender):
         h = F.normalize(rating_matrix)
         h = F.dropout(h, self.drop_out, training=self.training)
 
-        self.logger.info(f'H Shape {h.shape}')
-
         if c is not None:
             h = torch.cat((h, c), dim=1)
 
