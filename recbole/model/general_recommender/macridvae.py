@@ -54,13 +54,18 @@ class MacridVAE(GeneralRecommender):
         self.history_item_id = self.history_item_id.to(self.device)
         self.history_item_value = self.history_item_value.to(self.device)
         self.encode_layer_dims = (
-            [self.n_items] + self.layers + [self.embedding_size * 2]
+            [self.n_items + 128] + self.layers + [self.embedding_size * 2]
         )
 
         self.encoder = self.mlp_layers(self.encode_layer_dims)
 
-        self.item_embedding = nn.Embedding(self.n_items, self.embedding_size)
-        self.k_embedding = nn.Embedding(self.kfac, self.embedding_size)
+        self.item_embedding = nn.Embedding(self.n_items, self.embedding_size + 128)
+        self.k_embedding = nn.Embedding(self.kfac, self.embedding_size + 128)
+
+        pretrained_item_emb = dataset.get_preload_weight('iid')
+        self.conditions = nn.Embedding.from_pretrained(torch.from_numpy(pretrained_item_emb), freeze=False).type(torch.FloatTensor)
+        self.conditions.weight.requires_grad = False
+        self.user_conditions = F.normalize(torch.amax(self.conditions.weight[self.history_item_id], dim=1), dim=1) # max pool item embeddings for each user
 
         self.l2_loss = EmbLoss()
         # parameters initialization
@@ -107,7 +112,7 @@ class MacridVAE(GeneralRecommender):
         else:
             return mu
 
-    def forward(self, rating_matrix):
+    def forward(self, rating_matrix, c=None):
         cores = F.normalize(self.k_embedding.weight, dim=1)
         items = F.normalize(self.item_embedding.weight, dim=1)
 
@@ -130,7 +135,9 @@ class MacridVAE(GeneralRecommender):
             cates_k = cates[:, k].reshape(1, -1)
             # encoder
             x_k = rating_matrix * cates_k
-            h = self.encoder(x_k)
+            if c is not None:
+                h = torch.cat((x_k, c), dim=1)
+            h = self.encoder(h)
             mu = h[:, : self.embedding_size]
             mu = F.normalize(mu, dim=1)
             logvar = h[:, self.embedding_size :]
@@ -142,6 +149,8 @@ class MacridVAE(GeneralRecommender):
 
             # decoder
             z_k = F.normalize(z, dim=1)
+            if c is not None:
+                z_k = torch.cat((z_k, c), dim=1)
             logits_k = torch.matmul(z_k, items.transpose(0, 1)) / self.tau
             probs_k = torch.exp(logits_k)
             probs_k = probs_k * cates_k
@@ -155,6 +164,7 @@ class MacridVAE(GeneralRecommender):
 
         user = interaction[self.USER_ID]
         rating_matrix = self.get_rating_matrix(user)
+        c = self.user_conditions[user]
 
         self.update += 1
         if self.total_anneal_steps > 0:
@@ -162,7 +172,7 @@ class MacridVAE(GeneralRecommender):
         else:
             anneal = self.anneal_cap
 
-        z, mu, logvar = self.forward(rating_matrix)
+        z, mu, logvar = self.forward(rating_matrix, c)
         
         kl_loss = None
         for i in range(self.kfac):
@@ -197,8 +207,9 @@ class MacridVAE(GeneralRecommender):
         item = interaction[self.ITEM_ID]
 
         rating_matrix = self.get_rating_matrix(user)
+        c = self.user_conditions[user]
 
-        scores, _, _ = self.forward(rating_matrix)
+        scores, _, _ = self.forward(rating_matrix, c)
 
         return scores[[torch.arange(len(item)).to(self.device), item]]
 
@@ -206,7 +217,8 @@ class MacridVAE(GeneralRecommender):
         user = interaction[self.USER_ID]
 
         rating_matrix = self.get_rating_matrix(user)
+        c = self.user_conditions[user]
 
-        scores, _, _ = self.forward(rating_matrix)
+        scores, _, _ = self.forward(rating_matrix, c)
 
         return scores.view(-1)
