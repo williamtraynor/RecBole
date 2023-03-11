@@ -47,6 +47,11 @@ class MultiVAE(GeneralRecommender):
             1:
         ]
 
+        pretrained_item_emb = dataset.get_preload_weight('iid')
+        self.conditions = nn.Embedding.from_pretrained(torch.from_numpy(pretrained_item_emb), freeze=False).type(torch.FloatTensor)
+        self.conditions.weight.requires_grad = False
+        self.user_conditions = F.normalize(torch.amax(self.conditions.weight[self.history_item_id], dim=1), dim=1) # max pool item embeddings for each user
+        
         self.encoder = self.mlp_layers(self.encode_layer_dims)
         self.decoder = self.mlp_layers(self.decode_layer_dims)
 
@@ -93,13 +98,15 @@ class MultiVAE(GeneralRecommender):
         else:
             return mu
 
-    def forward(self, rating_matrix):
+    def forward(self, rating_matrix, c=None):
 
         h = F.normalize(rating_matrix)
-
         h = F.dropout(h, self.drop_out, training=self.training)
 
         self.logger.info(f'H Shape {h.shape}')
+
+        if c is not None:
+            h = torch.cat(h, c)
 
         h = self.encoder(h)
 
@@ -107,6 +114,10 @@ class MultiVAE(GeneralRecommender):
         logvar = h[:, int(self.lat_dim / 2) :]
 
         z = self.reparameterize(mu, logvar)
+
+        if c is not None:
+            z = torch.cat(z, c)
+
         z = self.decoder(z)
         return z, mu, logvar
 
@@ -114,6 +125,7 @@ class MultiVAE(GeneralRecommender):
 
         user = interaction[self.USER_ID]
         rating_matrix = self.get_rating_matrix(user)
+        c = self.user_conditions[user]
 
         self.update += 1
         if self.total_anneal_steps > 0:
@@ -121,7 +133,7 @@ class MultiVAE(GeneralRecommender):
         else:
             anneal = self.anneal_cap
 
-        z, mu, logvar = self.forward(rating_matrix)
+        z, mu, logvar = self.forward(rating_matrix, c)
 
         # KL loss
         kl_loss = (
@@ -141,8 +153,9 @@ class MultiVAE(GeneralRecommender):
         item = interaction[self.ITEM_ID]
 
         rating_matrix = self.get_rating_matrix(user)
+        c = self.user_conditions[user]
 
-        scores, _, _ = self.forward(rating_matrix)
+        scores, _, _ = self.forward(rating_matrix, c)
 
         return scores[[torch.arange(len(item)).to(self.device), item]]
 
@@ -150,7 +163,8 @@ class MultiVAE(GeneralRecommender):
         user = interaction[self.USER_ID]
 
         rating_matrix = self.get_rating_matrix(user)
+        c = self.user_conditions[user]
 
-        scores, _, _ = self.forward(rating_matrix)
+        scores, _, _ = self.forward(rating_matrix, c)
 
         return scores.view(-1)
