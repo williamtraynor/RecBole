@@ -83,7 +83,7 @@ class MacridDiffusion(GeneralRecommender):
         self.diffencoder = self.mlp_layers([128, 64, 16])
         self.diffdecoder = self.mlp_layers([16, 64, 128])
 
-
+        self.use_contitioning = config['use_conditioning']
         self.item_embedding = nn.Embedding(self.n_items, self.embedding_size)
         pretrained_item_emb = dataset.get_preload_weight('iid')
         self.conditions = nn.Embedding.from_pretrained(torch.from_numpy(pretrained_item_emb), freeze=False).type(torch.FloatTensor)
@@ -261,7 +261,7 @@ class MacridDiffusion(GeneralRecommender):
         else:
             return mu
         
-    def diffusion(self, x, t, c=None):
+    def diffusion(self, x, t, c):
 
         #z = self.diffencoder(x)
 
@@ -275,7 +275,7 @@ class MacridDiffusion(GeneralRecommender):
         # Get model output
         time_emb = self.time_mlp(t)  
 
-        if c is not None:
+        if self.use_contitioning:
             model_output = torch.cat([x + time_emb, c], dim=1)
             #x = torch.cat([x, torch.zeros_like(c)], dim=1)
 
@@ -287,14 +287,14 @@ class MacridDiffusion(GeneralRecommender):
 
         noise = torch.randn_like(x)
 
-        if c is not None:
+        if self.use_contitioning:
             # remove conditioning information
             model_mean = model_mean[:, :-c.shape[-1]]
             noise = torch.randn_like(x[:, :-c.shape[-1]])
 
         return model_mean + torch.sqrt(posterior_variance_t) * noise 
 
-    def forward(self, rating_matrix, t, c=None):
+    def forward(self, rating_matrix, t, c):
 
         cores = F.normalize(self.k_embedding.weight, dim=1)
         items = F.normalize(self.item_embedding.weight, dim=1)
