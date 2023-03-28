@@ -263,14 +263,7 @@ class MacridDiffusion(GeneralRecommender):
         
     def diffusion(self, x, t, c=None):
 
-        time_emb = self.time_mlp(t)  
-
-        if c is not None:
-            x = x + time_emb
-
-        z = self.diffencoder(x)
-
-        return self.diffdecoder(z)
+        #z = self.diffencoder(x)
 
         # Obtain constance values
         betas_t = self.get_index_from_list(self.betas, t, x.shape)
@@ -282,11 +275,9 @@ class MacridDiffusion(GeneralRecommender):
         # Get model output
         time_emb = self.time_mlp(t)  
 
-        model_output = x + time_emb 
-
         if c is not None:
             model_output = torch.cat([x + time_emb, c], dim=1)
-            x = torch.cat([x, torch.zeros_like(c)], dim=1)
+            #x = torch.cat([x, torch.zeros_like(c)], dim=1)
 
         # Call model (current image - noise prediction)
         model_mean = sqrt_recip_alphas_t * (
@@ -332,6 +323,8 @@ class MacridDiffusion(GeneralRecommender):
             z_noisy, noise = self.forward_diffusion_sample(z, t)
             # Diffusion takes place of commented out lines below from MultiVAE architecture.
             noisepred = self.diffusion(z_noisy, t, c)
+
+            #decoded_diffusion = self.diffdecoder(noisepred)
 
             noiselist += noise,
             noisepredlist += noisepred,
