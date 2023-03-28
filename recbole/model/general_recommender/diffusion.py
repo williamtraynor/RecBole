@@ -70,9 +70,20 @@ class Diffusion(GeneralRecommender):
         #pretrained_item_emb = dataset.get_preload_weight('iid')
         #self.item_embeddings = nn.Embedding.from_pretrained(torch.from_numpy(pretrained_item_emb), freeze=False).type(torch.FloatTensor)
         
-
         self.encoder = self.mlp_layers(self.encode_layer_dims)
         self.decoder = self.mlp_layers(self.decode_layer_dims)
+
+        self.diffencoder = self.mlp_layers([128, 64, 16])
+        self.diffdecoder = self.mlp_layers([16, 64, 128])
+
+        self.use_contitioning = config['use_conditioning']
+        self.item_embedding = nn.Embedding(self.n_items, 128) #self.embedding_size)
+        pretrained_item_emb = dataset.get_preload_weight('iid')
+        self.conditions = nn.Embedding.from_pretrained(torch.from_numpy(pretrained_item_emb), freeze=False).type(torch.FloatTensor)
+        self.conditions.weight.requires_grad = False
+        self.user_conditions = F.normalize(torch.amax(self.conditions.weight[self.history_item_id], dim=1), dim=1) # max pool item embeddings for each user
+        #self.user_conditions = torch.Tensor([(user_inters * self.conditions.weights.T).detach().numpy() for user_inters in self.history_item_id]).type(torch.float32)
+        #self.max_user_conditions = torch.amax(self.user_conditions, axis=1) # other option is torch.mean(user_mm_info, dim=2)
 
         # Time embedding
         self.time_emb_dim = self.lat_dim
@@ -110,7 +121,7 @@ class Diffusion(GeneralRecommender):
         #self.logger.nfo(f'X_0 Type: {type(x_0)} X_0 Items: {len(x_0)} X_0 Lenght: {x_0}')
 
         #x_0 = self.encoder(rating_matrix) # x = Rating Matrix
-        X = self.encoder(X)
+        #X = self.encoder(X)
 
         noise = torch.randn_like(X)
         sqrt_alphas_cumprod_t = self.get_index_from_list(self.sqrt_alphas_cumprod, t, X.shape)
@@ -147,7 +158,23 @@ class Diffusion(GeneralRecommender):
         return rating_matrix
     
     
-    def diffusion(self, x, t):
+    def diffusion(self, x, t, c):
+
+        time_emb = self.time_mlp(t)  
+
+        if self.use_contitioning:
+            encode_input = torch.cat([x + time_emb, c], dim=1)
+        else:
+            encode_input = x + time_emb
+
+        x_encoded = self.diffencoder(encode_input)
+
+        if self.use_contitioning:
+            decode_input = torch.cat([x_encoded, c], dim=1)
+        else:
+            decode_input = x_encoded
+
+        return self.diffdecoder(decode_input)
 
         # Obtain constance values
         betas_t = self.get_index_from_list(self.betas, t, x.shape)
@@ -173,29 +200,57 @@ class Diffusion(GeneralRecommender):
     
         return z, model_mean, posterior_variance_t
     
-    
-    def forward(self, h, t=None):
+    def recreate(self, x, t, noisepred):
+        # Obtain constance values
+        betas_t = self.get_index_from_list(self.betas, t, x.shape)
+        sqrt_one_minus_alphas_cumprod_t = self.get_index_from_list(
+            self.sqrt_one_minus_alphas_cumprod, t, x.shape
+        )
+        sqrt_recip_alphas_t = self.get_index_from_list(self.sqrt_recip_alphas, t, x.shape)   
 
-        h = self.encoder(h)
+        # Get model output
+        time_emb = self.time_mlp(t)  
+
+        # Call model (current image - noise prediction)
+        model_mean = sqrt_recip_alphas_t * (
+            x - betas_t * noisepred / sqrt_one_minus_alphas_cumprod_t
+        )
+        posterior_variance_t = self.get_index_from_list(self.posterior_variance, t, x.shape)
+
+        noise = torch.randn_like(x)
+
+        return model_mean + torch.sqrt(posterior_variance_t) * noise 
+    
+    
+    def forward(self, h, t, c):
+
+        h = F.normalize(h)
+        h = F.dropout(h, self.drop_out, training=self.training)
+
+        z = self.encoder(h)
 
         #if t is None:
             #t = torch.randint(0, self.n_steps, (h.shape[1],), device=self.device).long()
             #t = torch.full((h.shape[0],), self.n_steps-1, device=self.device).long() #([self.n_steps]) # n_steps = T
 
-        z, mu, logvar = self.diffusion(h, t)
+        z_noisy, noise = self.forward_diffusion_sample(z, t)
 
-        z_decoded = self.decoder(z)
+        noisepred = self.diffusion(z_noisy, t, c)
 
-        return z_decoded, z, mu, logvar
+        decode_input = self.recreate(z_noisy, t, noisepred)
+        
+        z_decoded = self.decoder(decode_input)
+
+        return z_decoded, noise, noisepred
 
     def calculate_loss(self, interaction):
 
         user = interaction[self.USER_ID]
-        rating_matrix = self.get_rating_matrix(user)
-        h = F.normalize(rating_matrix)
-        h = F.dropout(h, self.drop_out, training=self.training)
 
-        t = torch.randint(0, self.n_steps, (h.shape[0],), device=self.device).long()
+        rating_matrix = self.get_rating_matrix(user)
+        c = self.user_conditions[user]
+
+        t = torch.randint(0, self.n_steps, (rating_matrix.shape[0],), device=self.device).long()
 
         self.update += 1
         if self.total_anneal_steps > 0:
@@ -203,7 +258,7 @@ class Diffusion(GeneralRecommender):
         else:
             anneal = self.anneal_cap
 
-        z, _, _, _ = self.forward(h, t)
+        z, noise, noisepred = self.forward(rating_matrix, t, c)
 
         ## KL loss
         #kl_loss = (
@@ -216,11 +271,10 @@ class Diffusion(GeneralRecommender):
         ce_loss = -(F.log_softmax(z, 1) * rating_matrix).sum(1).mean()
 
         # Diffusion Loss
-        x_noisy, noise = self.forward_diffusion_sample(h, t)
-        noise_pred, _, _ = self.diffusion(x_noisy, t)
-        diffusion_loss = F.mse_loss(noise, noise_pred)
+        #x_noisy, noise = self.forward_diffusion_sample(h, t)
+        diffusion_loss = F.mse_loss(noise, noisepred)
 
-        return ce_loss + diffusion_loss * anneal #+ kl_loss
+        return ce_loss + diffusion_loss # * anneal + kl_loss
 
     def predict(self, interaction):
         """
@@ -230,27 +284,31 @@ class Diffusion(GeneralRecommender):
         """
 
         user = interaction[self.USER_ID]
-        rating_matrix = self.get_rating_matrix(user) # x = Rating Matrix
+        h = self.get_rating_matrix(user) # x = Rating Matrix
         
-        h = F.normalize(rating_matrix)
-        h = F.dropout(h, self.drop_out, training=self.training)
+        c = self.user_conditions[user]
+
+        #h = F.normalize(rating_matrix)
+        #h = F.dropout(h, self.drop_out, training=self.training)
 
         t = torch.full((h.shape[0],), self.n_steps-1, device=self.device).long()
         
-        scores, _, _, _ = self.forward(h, t)
+        scores, _, _ = self.forward(h, t, c)
 
         return scores
 
     def full_sort_predict(self, interaction):
         user = interaction[self.USER_ID]
-        rating_matrix = self.get_rating_matrix(user)
 
-        h = F.normalize(rating_matrix)
-        h = F.dropout(h, self.drop_out, training=self.training)
+        h = self.get_rating_matrix(user)
+        c = self.user_conditions[user]
+
+        #h = F.normalize(rating_matrix)
+        #h = F.dropout(h, self.drop_out, training=self.training)
 
         t = torch.full((h.shape[0],), self.n_steps-1, device=self.device).long()
 
-        scores, _, _, _ = self.forward(h, t)
+        scores, _, _ = self.forward(h, t, c)
 
         return scores.view(-1)
 
