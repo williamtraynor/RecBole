@@ -80,8 +80,8 @@ class MacridDiffusion(GeneralRecommender):
 
         self.encoder = self.mlp_layers(self.encode_layer_dims)
 
-        self.diffencoder = self.mlp_layers([128, 64, 16])
-        self.diffdecoder = self.mlp_layers([16, 64, 128])
+        #self.diffencoder = self.mlp_layers([128, 64, 16])
+        #self.diffdecoder = self.mlp_layers([16, 64, 128])
 
         self.use_contitioning = config['use_conditioning']
         self.item_embedding = nn.Embedding(self.n_items, self.embedding_size)
@@ -278,6 +278,8 @@ class MacridDiffusion(GeneralRecommender):
         if self.use_contitioning:
             model_output = torch.cat([x + time_emb, c], dim=1)
             x = torch.cat([x, torch.zeros_like(c)], dim=1)
+        else:
+            model_output = x + time_emb
 
         # Call model (current image - noise prediction)
         model_mean = sqrt_recip_alphas_t * (
