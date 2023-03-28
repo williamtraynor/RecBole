@@ -74,15 +74,6 @@ class MacridDiffusion(GeneralRecommender):
         self.history_item_id, self.history_item_value, _ = dataset.history_item_matrix()
         self.history_item_id = self.history_item_id.to(self.device)
         self.history_item_value = self.history_item_value.to(self.device)
-        
-        if self.use_contitioning:
-            self.encode_layer_dims = (
-                [self.n_items] + self.layers + [self.embedding_size] # * 2
-            )
-        else:
-            self.encode_layer_dims = (
-            [self.n_items + 128] + self.layers + [self.embedding_size] # * 2
-        )
 
         self.encoder = self.mlp_layers(self.encode_layer_dims)
 
@@ -98,7 +89,15 @@ class MacridDiffusion(GeneralRecommender):
         #self.user_conditions = torch.Tensor([(user_inters * self.conditions.weights.T).detach().numpy() for user_inters in self.history_item_id]).type(torch.float32)
         #self.max_user_conditions = torch.amax(self.user_conditions, axis=1) # other option is torch.mean(user_mm_info, dim=2)
 
-        
+        if self.use_contitioning:
+            self.encode_layer_dims = (
+                [self.n_items] + self.layers + [self.embedding_size] # * 2
+            )
+        else:
+            self.encode_layer_dims = (
+            [self.n_items + 128] + self.layers + [self.embedding_size] # * 2
+        )
+
         self.k_embedding = nn.Embedding(self.kfac, self.embedding_size)
 
         self.l2_loss = EmbLoss()
