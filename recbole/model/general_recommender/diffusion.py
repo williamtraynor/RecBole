@@ -77,7 +77,7 @@ class Diffusion(GeneralRecommender):
         self.diffencoder = self.mlp_layers(np.array([128 + 128, 64, 16]))
         self.diffdecoder = self.mlp_layers(np.array([16 + 128, 64, 128]))
 
-        self.use_contitioning = True #config['use_conditioning']
+        self.use_contitioning = config['use_conditioning']
         self.item_embedding = nn.Embedding(self.n_items, 128) #self.embedding_size)
         pretrained_item_emb = dataset.get_preload_weight('iid')
         self.conditions = nn.Embedding.from_pretrained(torch.from_numpy(pretrained_item_emb), freeze=False).type(torch.FloatTensor)
