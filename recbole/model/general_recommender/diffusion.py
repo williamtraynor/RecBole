@@ -74,7 +74,7 @@ class Diffusion(GeneralRecommender):
         self.encoder = self.mlp_layers(self.encode_layer_dims)
         self.decoder = self.mlp_layers(self.decode_layer_dims)
 
-        self.use_contitioning = config['use_conditioning']
+        self.use_conditioning = config['use_conditioning']
         self.item_embedding = nn.Embedding(self.n_items, 128) #self.embedding_size)
         pretrained_item_emb = dataset.get_preload_weight('iid')
         self.conditions = nn.Embedding.from_pretrained(torch.from_numpy(pretrained_item_emb), freeze=False).type(torch.FloatTensor)
@@ -168,14 +168,14 @@ class Diffusion(GeneralRecommender):
 
         time_emb = self.time_mlp(t)  
 
-        if self.use_contitioning:
+        if self.use_conditioning:
             encode_input = torch.cat([x + time_emb, c], dim=1)
         else:
             encode_input = x + time_emb
 
         x_encoded = self.diffencoder(encode_input)
 
-        if self.use_contitioning:
+        if self.use_conditioning:
             decode_input = torch.cat([x_encoded, c], dim=1)
         else:
             decode_input = x_encoded
@@ -217,7 +217,7 @@ class Diffusion(GeneralRecommender):
         # Get model output
         time_emb = self.time_mlp(t)  
 
-        if self.use_contitioning:
+        if self.use_conditioning:
             noisepred = torch.cat([noisepred, c], dim=1)
             x = torch.cat([x, torch.zeros_like(c)], dim=1)
 
@@ -229,7 +229,7 @@ class Diffusion(GeneralRecommender):
 
         noise = torch.randn_like(x)
 
-        if self.use_contitioning:
+        if self.use_conditioning:
             # remove conditioning information
             model_mean = model_mean[:, :-c.shape[-1]]
             noise = torch.randn_like(x[:, :-c.shape[-1]])
