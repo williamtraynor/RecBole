@@ -74,6 +74,14 @@ class MacridDiffusion(GeneralRecommender):
         self.history_item_id, self.history_item_value, _ = dataset.history_item_matrix()
         self.history_item_id = self.history_item_id.to(self.device)
         self.history_item_value = self.history_item_value.to(self.device)
+        self.encode_layer_dims = (
+            [self.n_items] + self.layers + [self.embedding_size] # * 2
+        )
+
+        self.encoder = self.mlp_layers(self.encode_layer_dims)
+
+        self.diffencoder = self.mlp_layers([128, 64, 16])
+        self.diffdecoder = self.mlp_layers([16, 64, 128])
 
         self.use_contitioning = config['use_conditioning']
         self.item_embedding = nn.Embedding(self.n_items, self.embedding_size)
@@ -84,20 +92,7 @@ class MacridDiffusion(GeneralRecommender):
         #self.user_conditions = torch.Tensor([(user_inters * self.conditions.weights.T).detach().numpy() for user_inters in self.history_item_id]).type(torch.float32)
         #self.max_user_conditions = torch.amax(self.user_conditions, axis=1) # other option is torch.mean(user_mm_info, dim=2)
 
-        if self.use_contitioning:
-            self.encode_layer_dims = (
-                [self.n_items] + self.layers + [self.embedding_size] # * 2
-            )
-        else:
-            self.encode_layer_dims = (
-            [self.n_items + 128] + self.layers + [self.embedding_size] # * 2
-        )
-            
-        self.encoder = self.mlp_layers(self.encode_layer_dims)
-
-        self.diffencoder = self.mlp_layers([128, 64, 16])
-        self.diffdecoder = self.mlp_layers([16, 64, 128])
-
+        
         self.k_embedding = nn.Embedding(self.kfac, self.embedding_size)
 
         self.l2_loss = EmbLoss()
@@ -282,7 +277,7 @@ class MacridDiffusion(GeneralRecommender):
 
         if self.use_contitioning:
             model_output = torch.cat([x + time_emb, c], dim=1)
-            #x = torch.cat([x, torch.zeros_like(c)], dim=1)
+            x = torch.cat([x, torch.zeros_like(c)], dim=1)
 
         # Call model (current image - noise prediction)
         model_mean = sqrt_recip_alphas_t * (
