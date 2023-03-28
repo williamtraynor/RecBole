@@ -74,9 +74,6 @@ class Diffusion(GeneralRecommender):
         self.encoder = self.mlp_layers(self.encode_layer_dims)
         self.decoder = self.mlp_layers(self.decode_layer_dims)
 
-        self.diffencoder = self.mlp_layers(np.array([128 + 128, 64, 16]))
-        self.diffdecoder = self.mlp_layers(np.array([16 + 128, 64, 128]))
-
         self.use_contitioning = config['use_conditioning']
         self.item_embedding = nn.Embedding(self.n_items, 128) #self.embedding_size)
         pretrained_item_emb = dataset.get_preload_weight('iid')
@@ -85,6 +82,14 @@ class Diffusion(GeneralRecommender):
         self.user_conditions = F.normalize(torch.amax(self.conditions.weight[self.history_item_id], dim=1), dim=1) # max pool item embeddings for each user
         #self.user_conditions = torch.Tensor([(user_inters * self.conditions.weights.T).detach().numpy() for user_inters in self.history_item_id]).type(torch.float32)
         #self.max_user_conditions = torch.amax(self.user_conditions, axis=1) # other option is torch.mean(user_mm_info, dim=2)
+
+        if use_condtioning:
+            self.diffencoder = self.mlp_layers(np.array([128 + 128, 64, 16]))
+            self.diffdecoder = self.mlp_layers(np.array([16 + 128, 64, 128]))
+        else:
+            self.diffencoder = self.mlp_layers(np.array([128, 64, 16]))
+            self.diffdecoder = self.mlp_layers(np.array([16, 64, 128]))
+
 
         # Time embedding
         self.time_emb_dim = self.lat_dim
