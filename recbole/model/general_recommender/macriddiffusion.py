@@ -74,8 +74,14 @@ class MacridDiffusion(GeneralRecommender):
         self.history_item_id, self.history_item_value, _ = dataset.history_item_matrix()
         self.history_item_id = self.history_item_id.to(self.device)
         self.history_item_value = self.history_item_value.to(self.device)
-        self.encode_layer_dims = (
-            [self.n_items] + self.layers + [self.embedding_size] # * 2
+        
+        if self.use_contitioning:
+            self.encode_layer_dims = (
+                [self.n_items] + self.layers + [self.embedding_size] # * 2
+            )
+        else:
+            self.encode_layer_dims = (
+            [self.n_items + 128] + self.layers + [self.embedding_size] # * 2
         )
 
         self.encoder = self.mlp_layers(self.encode_layer_dims)
