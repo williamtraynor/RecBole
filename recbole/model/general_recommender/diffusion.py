@@ -15,6 +15,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
+import numpy as np
 
 from recbole.model.abstract_recommender import GeneralRecommender
 from recbole.model.init import xavier_normal_initialization
@@ -73,10 +74,10 @@ class Diffusion(GeneralRecommender):
         self.encoder = self.mlp_layers(self.encode_layer_dims)
         self.decoder = self.mlp_layers(self.decode_layer_dims)
 
-        self.diffencoder = self.mlp_layers([128, 64, 16])
-        self.diffdecoder = self.mlp_layers([16, 64, 128])
+        self.diffencoder = self.mlp_layers(np.array([128 + 128, 64, 16]))
+        self.diffdecoder = self.mlp_layers(np.array([16 + 128, 64, 128]))
 
-        self.use_contitioning = config['use_conditioning']
+        self.use_contitioning = True #config['use_conditioning']
         self.item_embedding = nn.Embedding(self.n_items, 128) #self.embedding_size)
         pretrained_item_emb = dataset.get_preload_weight('iid')
         self.conditions = nn.Embedding.from_pretrained(torch.from_numpy(pretrained_item_emb), freeze=False).type(torch.FloatTensor)
@@ -200,7 +201,7 @@ class Diffusion(GeneralRecommender):
     
         return z, model_mean, posterior_variance_t
     
-    def recreate(self, x, t, noisepred):
+    def recreate(self, x, t, c, noisepred):
         # Obtain constance values
         betas_t = self.get_index_from_list(self.betas, t, x.shape)
         sqrt_one_minus_alphas_cumprod_t = self.get_index_from_list(
@@ -211,6 +212,10 @@ class Diffusion(GeneralRecommender):
         # Get model output
         time_emb = self.time_mlp(t)  
 
+        if self.use_contitioning:
+            noisepred = torch.cat([noisepred, c], dim=1)
+            x = torch.cat([x, torch.zeros_like(c)], dim=1)
+
         # Call model (current image - noise prediction)
         model_mean = sqrt_recip_alphas_t * (
             x - betas_t * noisepred / sqrt_one_minus_alphas_cumprod_t
@@ -218,6 +223,11 @@ class Diffusion(GeneralRecommender):
         posterior_variance_t = self.get_index_from_list(self.posterior_variance, t, x.shape)
 
         noise = torch.randn_like(x)
+
+        if self.use_contitioning:
+            # remove conditioning information
+            model_mean = model_mean[:, :-c.shape[-1]]
+            noise = torch.randn_like(x[:, :-c.shape[-1]])
 
         return model_mean + torch.sqrt(posterior_variance_t) * noise 
     
@@ -237,7 +247,7 @@ class Diffusion(GeneralRecommender):
 
         noisepred = self.diffusion(z_noisy, t, c)
 
-        decode_input = self.recreate(z_noisy, t, noisepred)
+        decode_input = self.recreate(z_noisy, t, c, noisepred)
         
         z_decoded = self.decoder(decode_input)
 
