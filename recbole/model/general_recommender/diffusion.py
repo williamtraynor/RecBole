@@ -83,7 +83,7 @@ class Diffusion(GeneralRecommender):
         #self.user_conditions = torch.Tensor([(user_inters * self.conditions.weights.T).detach().numpy() for user_inters in self.history_item_id]).type(torch.float32)
         #self.max_user_conditions = torch.amax(self.user_conditions, axis=1) # other option is torch.mean(user_mm_info, dim=2)
 
-        if use_condtioning:
+        if use_conditioning:
             self.diffencoder = self.mlp_layers(np.array([128 + 128, 64, 16]))
             self.diffdecoder = self.mlp_layers(np.array([16 + 128, 64, 128]))
         else:
