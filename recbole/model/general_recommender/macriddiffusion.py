@@ -75,11 +75,6 @@ class MacridDiffusion(GeneralRecommender):
         self.history_item_id = self.history_item_id.to(self.device)
         self.history_item_value = self.history_item_value.to(self.device)
 
-        self.encoder = self.mlp_layers(self.encode_layer_dims)
-
-        self.diffencoder = self.mlp_layers([128, 64, 16])
-        self.diffdecoder = self.mlp_layers([16, 64, 128])
-
         self.use_contitioning = config['use_conditioning']
         self.item_embedding = nn.Embedding(self.n_items, self.embedding_size)
         pretrained_item_emb = dataset.get_preload_weight('iid')
@@ -97,6 +92,11 @@ class MacridDiffusion(GeneralRecommender):
             self.encode_layer_dims = (
             [self.n_items + 128] + self.layers + [self.embedding_size] # * 2
         )
+            
+        self.encoder = self.mlp_layers(self.encode_layer_dims)
+
+        self.diffencoder = self.mlp_layers([128, 64, 16])
+        self.diffdecoder = self.mlp_layers([16, 64, 128])
 
         self.k_embedding = nn.Embedding(self.kfac, self.embedding_size)
 
