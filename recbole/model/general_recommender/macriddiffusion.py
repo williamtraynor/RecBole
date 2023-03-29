@@ -83,7 +83,7 @@ class MacridDiffusion(GeneralRecommender):
         #self.diffencoder = self.mlp_layers([128, 64, 16])
         #self.diffdecoder = self.mlp_layers([16, 64, 128])
 
-        self.use_contitioning = config['use_conditioning']
+        self.use_conditioning = config['use_conditioning']
         self.item_embedding = nn.Embedding(self.n_items, self.embedding_size)
         pretrained_item_emb = dataset.get_preload_weight('iid')
         self.conditions = nn.Embedding.from_pretrained(torch.from_numpy(pretrained_item_emb), freeze=False).type(torch.FloatTensor)
@@ -275,7 +275,7 @@ class MacridDiffusion(GeneralRecommender):
         # Get model output
         time_emb = self.time_mlp(t)  
 
-        if self.use_contitioning:
+        if self.use_conditioning:
             model_output = torch.cat([x + time_emb, c], dim=1)
             x = torch.cat([x, torch.zeros_like(c)], dim=1)
         else:
@@ -289,7 +289,7 @@ class MacridDiffusion(GeneralRecommender):
 
         noise = torch.randn_like(x)
 
-        if self.use_contitioning:
+        if self.use_conditioning:
             # remove conditioning information
             model_mean = model_mean[:, :-c.shape[-1]]
             noise = torch.randn_like(x[:, :-c.shape[-1]])
