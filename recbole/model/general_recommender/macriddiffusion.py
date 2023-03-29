@@ -324,7 +324,7 @@ class MacridDiffusion(GeneralRecommender):
 
             z_noisy, noise = self.forward_diffusion_sample(z, t)
             # Diffusion takes place of commented out lines below from MultiVAE architecture.
-            noisepred = self.diffusion(z_noisy, t, c)
+            noisepred = self.diffusion(z, t, c)
 
             #decoded_diffusion = self.diffdecoder(noisepred)
 
@@ -332,7 +332,7 @@ class MacridDiffusion(GeneralRecommender):
             noisepredlist += noisepred,
 
             # decoder
-            z_k = F.normalize((z_noisy - noisepred), dim=1)
+            z_k = F.normalize((z), dim=1)
             logits_k = torch.matmul(z_k, items.transpose(0, 1)) / self.tau
             probs_k = torch.exp(logits_k)
             probs_k = probs_k * cates_k
@@ -388,7 +388,7 @@ class MacridDiffusion(GeneralRecommender):
         #if self.regs[0] != 0 or self.regs[1] != 0:
         #    return ce_loss + kl_loss * anneal + self.reg_loss()
 
-        return ce_loss + diffusion_loss #+ kl_loss * anneal 
+        return ce_loss + diffusion_loss * anneal #+ kl_loss * anneal 
 
     def reg_loss(self):
         r"""Calculate the L2 normalization loss of model parameters.
