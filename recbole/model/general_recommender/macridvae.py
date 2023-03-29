@@ -153,13 +153,13 @@ class MacridVAE(GeneralRecommender):
             # decoder
             #z_k = F.normalize(z, dim=1)
             if c is not None:
-                z_k = torch.cat((z_k, c), dim=1)
+                z = torch.cat((z, c), dim=1)
 
-            z = self.decoder(z)
+            z_k = self.decoder(z)
             #logits_k = torch.matmul(z_k, items.transpose(0, 1)) / self.tau
             #probs_k = torch.exp(logits_k)
             #probs_k = probs_k * cates_k
-            probs = z if (probs is None) else (probs + z)
+            probs = z_k if (probs is None) else (probs + z_k)
 
         logits = torch.log(probs)
 
