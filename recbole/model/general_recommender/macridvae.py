@@ -161,7 +161,9 @@ class MacridVAE(GeneralRecommender):
             #logits_k = torch.matmul(z_k, items.transpose(0, 1)) / self.tau
             #probs_k = torch.exp(logits_k)
             #probs_k = probs_k * cates_k
-            probs = z_k if (probs is None) else (probs + z_k)
+            probs_k = nn.functional.softmax(z_k)
+
+            probs = probs_k if (probs is None) else (probs + probs_k)
 
         logits = torch.log(probs)
 
