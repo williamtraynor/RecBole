@@ -56,8 +56,11 @@ class MacridVAE(GeneralRecommender):
         self.encode_layer_dims = (
             [self.n_items + 128] + self.layers + [self.embedding_size * 2]
         )
+        self.decode_layer_dims = [self.embedding_size * 2] + self.encode_layer_dims[::-1][1:]
 
         self.encoder = self.mlp_layers(self.encode_layer_dims)
+        self.decoder = self.mlp_layers(self.decode_layer_dims)
+
 
         self.item_embedding = nn.Embedding(self.n_items, self.embedding_size + 128)
         self.k_embedding = nn.Embedding(self.kfac, self.embedding_size + 128)
@@ -148,13 +151,15 @@ class MacridVAE(GeneralRecommender):
             z = self.reparameterize(mu, logvar)
 
             # decoder
-            z_k = F.normalize(z, dim=1)
+            #z_k = F.normalize(z, dim=1)
             if c is not None:
                 z_k = torch.cat((z_k, c), dim=1)
-            logits_k = torch.matmul(z_k, items.transpose(0, 1)) / self.tau
-            probs_k = torch.exp(logits_k)
-            probs_k = probs_k * cates_k
-            probs = probs_k if (probs is None) else (probs + probs_k)
+
+            z = self.decoder(z)
+            #logits_k = torch.matmul(z_k, items.transpose(0, 1)) / self.tau
+            #probs_k = torch.exp(logits_k)
+            #probs_k = probs_k * cates_k
+            probs = z if (probs is None) else (probs + z)
 
         logits = torch.log(probs)
 
