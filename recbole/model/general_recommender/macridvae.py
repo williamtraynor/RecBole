@@ -54,9 +54,11 @@ class MacridVAE(GeneralRecommender):
         self.history_item_id = self.history_item_id.to(self.device)
         self.history_item_value = self.history_item_value.to(self.device)
         self.encode_layer_dims = (
-            [self.n_items + 128] + self.layers + [self.embedding_size * 2]
+            [self.n_items] + self.layers + [self.embedding_size * 2]
         )
         self.decode_layer_dims = [self.embedding_size * 2] + self.encode_layer_dims[::-1][1:]
+
+        self.encode_layer_dims[0] += 128
 
         self.encoder = self.mlp_layers(self.encode_layer_dims)
         self.decoder = self.mlp_layers(self.decode_layer_dims)
