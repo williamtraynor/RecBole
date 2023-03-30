@@ -380,10 +380,10 @@ class MacridDiffusion(GeneralRecommender):
             ##dl_ = F.mse_loss(noiselist[i], noise_pred)
         #diffusion_loss = dl_ if (diffusion_loss is None) else (diffusion_loss + dl_)
         
-        diffusion_loss = 0
-        for i in range(self.kfac):
-            dl_ = F.mse_loss(noiselist[i], noisepredlist[i])
-            diffusion_loss = dl_ if (diffusion_loss is None) else (diffusion_loss + dl_)
+        #diffusion_loss = 0
+        #for i in range(self.kfac):
+        #    dl_ = F.mse_loss(noiselist[i], noisepredlist[i])
+        #    diffusion_loss = dl_ if (diffusion_loss is None) else (diffusion_loss + dl_)
 
         #if self.regs[0] != 0 or self.regs[1] != 0:
         #    return ce_loss + kl_loss * anneal + self.reg_loss()
