@@ -92,7 +92,6 @@ class MacridDiffusion(GeneralRecommender):
         #self.user_conditions = torch.Tensor([(user_inters * self.conditions.weights.T).detach().numpy() for user_inters in self.history_item_id]).type(torch.float32)
         #self.max_user_conditions = torch.amax(self.user_conditions, axis=1) # other option is torch.mean(user_mm_info, dim=2)
 
-        
         self.k_embedding = nn.Embedding(self.kfac, self.embedding_size)
 
         self.l2_loss = EmbLoss()
@@ -264,6 +263,10 @@ class MacridDiffusion(GeneralRecommender):
 
         #z = self.diffencoder(x)
 
+        # Call with encoded rating matrix, x, 
+        # diffusion time variable, t, 
+        # conditioning, c,
+
         # Obtain constance values
         betas_t = self.get_index_from_list(self.betas, t, x.shape)
         sqrt_one_minus_alphas_cumprod_t = self.get_index_from_list(
@@ -320,18 +323,18 @@ class MacridDiffusion(GeneralRecommender):
             # encoder
             x_k = rating_matrix * cates_k
             z = self.encoder(x_k)
-
-            #z_noisy, noise = self.forward_diffusion_sample(z, t)
+            # we assume that encoded info z is the forward diffusion sample
+            z_noisy, noise = self.forward_diffusion_sample(z, t)
             # Diffusion takes place of commented out lines below from MultiVAE architecture.
-            #noisepred = self.diffusion(z, t, c)
+            noisepred = self.diffusion(z, t, c)
 
             #decoded_diffusion = self.diffdecoder(noisepred)
 
-            noiselist += 1, #noise,
-            noisepredlist += 2, #noisepred,
+            noiselist += noise,
+            noisepredlist += noisepred,
 
             # decoder
-            z_k = F.normalize((z), dim=1) #z_noisy
+            z_k = F.normalize((z_noisy), dim=1)
             logits_k = torch.matmul(z_k, items.transpose(0, 1)) / self.tau
             probs_k = torch.exp(logits_k)
             probs_k = probs_k * cates_k
