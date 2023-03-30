@@ -106,7 +106,6 @@ class MacridDiffusion(GeneralRecommender):
                 nn.ReLU()
             )
         # parameters initialization
-
         self.apply(xavier_normal_initialization)
 
     # Return forward diffusion sample that is equal for every k.
@@ -322,17 +321,17 @@ class MacridDiffusion(GeneralRecommender):
             x_k = rating_matrix * cates_k
             z = self.encoder(x_k)
 
-            z_noisy, noise = self.forward_diffusion_sample(z, t)
+            #z_noisy, noise = self.forward_diffusion_sample(z, t)
             # Diffusion takes place of commented out lines below from MultiVAE architecture.
             #noisepred = self.diffusion(z, t, c)
 
             #decoded_diffusion = self.diffdecoder(noisepred)
 
-            noiselist += noise,
-            noisepredlist += 0, #noisepred,
+            noiselist += 1, #noise,
+            noisepredlist += 2, #noisepred,
 
             # decoder
-            z_k = F.normalize((z_noisy), dim=1)
+            z_k = F.normalize((z), dim=1) #z_noisy
             logits_k = torch.matmul(z_k, items.transpose(0, 1)) / self.tau
             probs_k = torch.exp(logits_k)
             probs_k = probs_k * cates_k
