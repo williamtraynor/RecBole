@@ -92,18 +92,19 @@ class MacridDiffusion(GeneralRecommender):
         #self.user_conditions = torch.Tensor([(user_inters * self.conditions.weights.T).detach().numpy() for user_inters in self.history_item_id]).type(torch.float32)
         #self.max_user_conditions = torch.amax(self.user_conditions, axis=1) # other option is torch.mean(user_mm_info, dim=2)
 
+        
         self.k_embedding = nn.Embedding(self.kfac, self.embedding_size)
 
         self.l2_loss = EmbLoss()
         # parameters initialization
 
         # Time embedding
-        #self.time_emb_dim = self.embedding_size
-        #self.time_mlp = nn.Sequential(
-        #        SinusoidalPositionEmbeddings(self.time_emb_dim),
-        #        nn.Linear(self.time_emb_dim, self.time_emb_dim),
-        #        nn.ReLU()
-        #    )
+        self.time_emb_dim = self.embedding_size
+        self.time_mlp = nn.Sequential(
+                SinusoidalPositionEmbeddings(self.time_emb_dim),
+                nn.Linear(self.time_emb_dim, self.time_emb_dim),
+                nn.ReLU()
+            )
         # parameters initialization
         self.apply(xavier_normal_initialization)
 
@@ -263,10 +264,6 @@ class MacridDiffusion(GeneralRecommender):
 
         #z = self.diffencoder(x)
 
-        # Call with encoded rating matrix, x, 
-        # diffusion time variable, t, 
-        # conditioning, c,
-
         # Obtain constance values
         betas_t = self.get_index_from_list(self.betas, t, x.shape)
         sqrt_one_minus_alphas_cumprod_t = self.get_index_from_list(
@@ -275,17 +272,13 @@ class MacridDiffusion(GeneralRecommender):
         sqrt_recip_alphas_t = self.get_index_from_list(self.sqrt_recip_alphas, t, x.shape)   
 
         # Get model output
-        #time_emb = self.time_mlp(t)  
+        time_emb = self.time_mlp(t)  
 
         if self.use_conditioning:
-            #model_output = torch.cat([x + time_emb, c], dim=1)
-            #x = torch.cat([x, torch.zeros_like(c)], dim=1)
-        
-            model_output = torch.cat([x, c], dim=1)
+            model_output = torch.cat([x + time_emb, c], dim=1)
             x = torch.cat([x, torch.zeros_like(c)], dim=1)
         else:
-            #model_output = x + time_emb
-            model_output = x
+            model_output = x + time_emb
 
         # Call model (current image - noise prediction)
         model_mean = sqrt_recip_alphas_t * (
@@ -327,7 +320,7 @@ class MacridDiffusion(GeneralRecommender):
             # encoder
             x_k = rating_matrix * cates_k
             z = self.encoder(x_k)
-            # we assume that encoded info z is the forward diffusion sample
+
             z_noisy, noise = self.forward_diffusion_sample(z, t)
             # Diffusion takes place of commented out lines below from MultiVAE architecture.
             noisepred = self.diffusion(z, t, c)
