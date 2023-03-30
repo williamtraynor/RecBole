@@ -28,3 +28,8 @@ from recbole.model.general_recommender.nceplrec import NCEPLRec
 from recbole.model.general_recommender.sgl import SGL
 from recbole.model.general_recommender.admmslim import ADMMSLIM
 from recbole.model.general_recommender.simplex import SimpleX
+from recbole.model.general_recommender.diffusion import Diffusion
+from recbole.model.general_recommender.macriddiffusion import MacridDiffusion
+
+
+
