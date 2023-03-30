@@ -98,12 +98,12 @@ class MacridDiffusion(GeneralRecommender):
         # parameters initialization
 
         # Time embedding
-        self.time_emb_dim = self.embedding_size
-        self.time_mlp = nn.Sequential(
-                SinusoidalPositionEmbeddings(self.time_emb_dim),
-                nn.Linear(self.time_emb_dim, self.time_emb_dim),
-                nn.ReLU()
-            )
+        #self.time_emb_dim = self.embedding_size
+        #self.time_mlp = nn.Sequential(
+        #        SinusoidalPositionEmbeddings(self.time_emb_dim),
+        #        nn.Linear(self.time_emb_dim, self.time_emb_dim),
+        #        nn.ReLU()
+        #    )
         # parameters initialization
         self.apply(xavier_normal_initialization)
 
@@ -275,13 +275,17 @@ class MacridDiffusion(GeneralRecommender):
         sqrt_recip_alphas_t = self.get_index_from_list(self.sqrt_recip_alphas, t, x.shape)   
 
         # Get model output
-        time_emb = self.time_mlp(t)  
+        #time_emb = self.time_mlp(t)  
 
         if self.use_conditioning:
-            model_output = torch.cat([x + time_emb, c], dim=1)
+            #model_output = torch.cat([x + time_emb, c], dim=1)
+            #x = torch.cat([x, torch.zeros_like(c)], dim=1)
+        
+            model_output = torch.cat([x, c], dim=1)
             x = torch.cat([x, torch.zeros_like(c)], dim=1)
         else:
-            model_output = x + time_emb
+            #model_output = x + time_emb
+            model_output = x
 
         # Call model (current image - noise prediction)
         model_mean = sqrt_recip_alphas_t * (
