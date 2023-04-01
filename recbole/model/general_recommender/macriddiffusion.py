@@ -263,7 +263,13 @@ class MacridDiffusion(GeneralRecommender):
         
     def diffusion(self, x, t, c):
 
-        #z = self.diffencoder(x)
+        time_emb = self.time_mlp(t)  
+
+        x = x + time_emb
+
+        z = self.diffencoder(x)
+
+        return self.diffdecoder(x)
 
         # Obtain constance values
         betas_t = self.get_index_from_list(self.betas, t, x.shape)
@@ -324,7 +330,7 @@ class MacridDiffusion(GeneralRecommender):
 
             z_noisy, noise = self.forward_diffusion_sample(z, t)
             # Diffusion takes place of commented out lines below from MultiVAE architecture.
-            noisepred = self.diffusion(z, t, c)
+            noisepred = self.diffusion(z_noisy, t, c)
 
             #decoded_diffusion = self.diffdecoder(noisepred)
 
@@ -332,7 +338,7 @@ class MacridDiffusion(GeneralRecommender):
             noisepredlist += noisepred,
 
             # decoder
-            z_k = F.normalize((z), dim=1)
+            z_k = F.normalize((z_noisy-noisepred), dim=1)
             logits_k = torch.matmul(z_k, items.transpose(0, 1)) / self.tau
             probs_k = torch.exp(logits_k)
             probs_k = probs_k * cates_k
