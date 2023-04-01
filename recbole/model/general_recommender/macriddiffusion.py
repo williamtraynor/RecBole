@@ -80,8 +80,8 @@ class MacridDiffusion(GeneralRecommender):
 
         self.encoder = self.mlp_layers(self.encode_layer_dims)
 
-        #self.diffencoder = self.mlp_layers([128, 64, 16])
-        #self.diffdecoder = self.mlp_layers([16, 64, 128])
+        self.diffencoder = self.mlp_layers([128, 64, 16])
+        self.diffdecoder = self.mlp_layers([16, 64, 128])
 
         self.use_conditioning = config['use_conditioning']
         self.item_embedding = nn.Embedding(self.n_items, self.embedding_size)
