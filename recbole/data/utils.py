@@ -234,7 +234,7 @@ def get_dataloader(config, phase):
         "ENMF": _get_AE_dataloader,
         "RaCT": _get_AE_dataloader,
         "RecVAE": _get_AE_dataloader,
-        "MacridVAE": _get_AE_dataloader,
+        "MacridDiffusion": _get_AE_dataloader,
         "Diffusion": _get_AE_dataloader,
     }
 
