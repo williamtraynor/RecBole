@@ -269,7 +269,7 @@ class MacridDiffusion(GeneralRecommender):
 
         z = self.diffencoder(x)
 
-        return self.diffdecoder(x)
+        return self.diffdecoder(z)
 
         # Obtain constance values
         betas_t = self.get_index_from_list(self.betas, t, x.shape)
