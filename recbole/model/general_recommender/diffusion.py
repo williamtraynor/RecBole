@@ -168,19 +168,19 @@ class Diffusion(GeneralRecommender):
 
         time_emb = self.time_mlp(t)  
 
-        if self.use_conditioning:
-            encode_input = torch.cat([x + time_emb, c], dim=1)
-        else:
-            encode_input = x + time_emb
+        #if self.use_conditioning:
+        #    encode_input = torch.cat([x + time_emb, c], dim=1)
+        #else:
+        #    encode_input = x + time_emb
 
-        x_encoded = self.diffencoder(encode_input)
+        #x_encoded = self.diffencoder(encode_input)
 
-        if self.use_conditioning:
-            decode_input = torch.cat([x_encoded, c], dim=1)
-        else:
-            decode_input = x_encoded
+        #if self.use_conditioning:
+        #    decode_input = torch.cat([x_encoded, c], dim=1)
+        #else:
+        #    decode_input = x_encoded
 
-        return self.diffdecoder(decode_input)
+        #return self.diffdecoder(decode_input)
 
         # Obtain constance values
         betas_t = self.get_index_from_list(self.betas, t, x.shape)
@@ -250,11 +250,11 @@ class Diffusion(GeneralRecommender):
 
         z_noisy, noise = self.forward_diffusion_sample(z, t)
 
-        noisepred = self.diffusion(z_noisy, t, c)
+        noisepred = self.diffusion(z, t, c)
 
-        decode_input = self.recreate(z_noisy, t, c, noisepred)
+        #decode_input = self.recreate(z_noisy, t, c, noisepred)
         
-        z_decoded = self.decoder(decode_input)
+        z_decoded = self.decoder(z)
 
         return z_decoded, noise, noisepred
 

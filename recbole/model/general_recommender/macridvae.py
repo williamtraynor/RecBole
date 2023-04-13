@@ -56,15 +56,14 @@ class MacridVAE(GeneralRecommender):
         self.encode_layer_dims = (
             [self.n_items] + self.layers + [self.embedding_size * 2]
         )
-        self.decode_layer_dims = [self.embedding_size * 2] + self.encode_layer_dims[::-1][1:]
 
         self.encode_layer_dims[0] += 128
 
         self.encoder = self.mlp_layers(self.encode_layer_dims)
-        self.decoder = self.mlp_layers(self.decode_layer_dims)
+        #self.decoder = self.mlp_layers(self.decode_layer_dims)
 
 
-        self.item_embedding = nn.Embedding(self.n_items, self.embedding_size + 128)
+        #self.item_embedding = nn.Embedding(self.n_items, self.embedding_size + 128)
         self.k_embedding = nn.Embedding(self.kfac, self.embedding_size + 128)
 
         pretrained_item_emb = dataset.get_preload_weight('iid')
